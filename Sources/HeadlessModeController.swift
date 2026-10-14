@@ -32,9 +32,10 @@ private func displayReconfigurationCallback(
     NSLog("MacHead: 显示配置变更完成。之前外接: %@, 当前外接: %@, 数量: %d, 无头模式: %d",
           previousExternals.description, currentExternals.description, currentExternals.count, controller.isHeadlessModeEnabled ? 1 : 0)
 
-    // 所有外接显示器都已断开：按需安全恢复内屏
+    // 所有外接显示器都已断开（从有外接屏变为无外接屏）：按需安全恢复内屏
     if currentExternals.isEmpty {
-        if controller.isHeadlessModeEnabled,
+        if !previousExternals.isEmpty,
+           controller.isHeadlessModeEnabled,
            UserDefaults.standard.bool(forKey: "AutoExitHeadlessOnDisconnect") {
             NSLog("MacHead: 检测到所有外接显示器已断开，直接退出无头模式！")
             DispatchQueue.main.async {
@@ -117,6 +118,7 @@ final class HeadlessModeController {
         wasEnableHeadlessModeCalled = true
         guard !isHeadlessModeEnabled, !isTestMode else { return }
         isHeadlessModeEnabled = true
+        activeExternalDisplays = currentExternalDisplays()
         UserDefaults.standard.set(true, forKey: "HeadlessModeEnabled")
         NSLog("MacHead: 正在启用无头模式...")
         
@@ -388,6 +390,17 @@ final class HeadlessModeController {
         precondition(controller.wasMaintainDisconnectCalled, "FAIL: Built-in display was not re-disconnected while headless mode is active with externals present!")
         precondition(controller.isHeadlessModeEnabled, "FAIL: Maintain-disconnect should not turn off headless mode!")
         print("Test 6: PASS")
+
+        // Test 7: Built-in display finishes disconnecting when no external display was previously connected
+        // (e.g. pure headless server or before external monitor finishes waking at boot).
+        // Must NOT falsely trigger safe recovery as if an external display had been unplugged.
+        print("Test 7: Built-in display finishes disconnecting when no external display was previously connected...")
+        fireChange(headless: true, previous: [], current: [], builtInOnline: false, displayID: 1)
+        drainMainQueue()
+
+        precondition(!controller.wasTriggerSafeRecoveryCalled, "FAIL: Safe recovery was falsely triggered when previousExternals was already empty!")
+        precondition(controller.isHeadlessModeEnabled, "FAIL: Headless mode should remain active when no external display was unplugged!")
+        print("Test 7: PASS")
 
         print("All Tests Passed Successfully! 🎉")
     }
