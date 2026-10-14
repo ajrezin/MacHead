@@ -120,27 +120,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 异步执行，提权弹窗不得阻塞启动流程
         DispatchQueue.main.async { CLIToolInstaller.setupIfEnabled() }
         
-        // Auto-reconnect if headless mode was previously enabled and autoEnableOnLaunch is true
+        // Auto-enable headless mode on launch if enabled in preferences
         let autoEnable = UserDefaults.standard.bool(forKey: "AutoEnableHeadlessOnLaunch")
-        let previouslyEnabled = UserDefaults.standard.bool(forKey: "HeadlessModeEnabled")
-        if autoEnable && previouslyEnabled {
+        if autoEnable {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.controller.enableHeadlessMode()
                 self.updateIcon()
             }
         }
-        
+
         // Silent background check for updates 3 seconds after launch & send telemetry heartbeat
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             UpdateManager.shared.checkForUpdates(silent: true)
             TelemetryManager.shared.track(event: "app_heartbeat")
         }
     }
-    
+
     private func updateIcon() {
-        let autoEnable = UserDefaults.standard.bool(forKey: "AutoEnableHeadlessOnLaunch")
-        let previouslyEnabled = UserDefaults.standard.bool(forKey: "HeadlessModeEnabled")
-        let isHeadless = controller.isHeadlessModeEnabled || (autoEnable && previouslyEnabled)
+        let isHeadless = controller.isHeadlessModeEnabled
         
         let imageName = isHeadless ? "macmini" : "laptopcomputer"
         if let image = NSImage(systemSymbolName: imageName, accessibilityDescription: "MacHead") {

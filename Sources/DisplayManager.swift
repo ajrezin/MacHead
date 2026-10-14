@@ -88,7 +88,9 @@ final class DisplayManager {
     // MARK: - 内置屏断开/恢复
 
     /// 断开内置显示器（已离线时为幂等空操作）
-    func disconnectBuiltIn() {
+    func disconnectBuiltIn(retriesRemaining: Int = 5) {
+        guard HeadlessModeController.shared.isHeadlessModeEnabled else { return }
+
         guard let setMode = setMode else {
             NSLog("MacHead: CGSConfigureDisplayEnabled API 不可用")
             return
@@ -100,20 +102,35 @@ final class DisplayManager {
         }
         persistBuiltInID(id)
 
-        NSLog("MacHead: 正在断开内置显示屏 ID: %d", id)
+        NSLog("MacHead: 正在断开内置显示屏 ID: %d (剩余重试: %d)", id, retriesRemaining)
         var configRef: CGDisplayConfigRef? = nil
         let beginErr = CGBeginDisplayConfiguration(&configRef)
         if beginErr == .success {
             let configureErr = setMode(configRef, id, false)
-            let completeErr = CGCompleteDisplayConfiguration(configRef, .permanently)
-            NSLog("MacHead: 断开内置屏结果 - 设定: %d, 提交: %d", configureErr, completeErr.rawValue)
+            if configureErr == 0 {
+                let completeErr = CGCompleteDisplayConfiguration(configRef, .permanently)
+                NSLog("MacHead: 断开内置屏结果 - 设定: %d, 提交: %d", configureErr, completeErr.rawValue)
+                if completeErr == .success { return }
+                CGCancelDisplayConfiguration(configRef)
+            } else {
+                NSLog("MacHead: 断开内置屏设定失败: %d", configureErr)
+                CGCancelDisplayConfiguration(configRef)
+            }
+            NSLog("MacHead: 提交断开显示配置未成功，将在 0.2 秒后重试...")
         } else {
             NSLog("MacHead: CGBeginDisplayConfiguration 失败: %d", beginErr.rawValue)
+        }
+
+        guard retriesRemaining > 0 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.disconnectBuiltIn(retriesRemaining: retriesRemaining - 1)
         }
     }
 
     /// 重新连接内置显示器
     func reconnectBuiltIn(retriesRemaining: Int = 5) {
+        guard !HeadlessModeController.shared.isHeadlessModeEnabled else { return }
+
         // 如果内屏已在权威在线列表中，无需重复开启
         if let online = onlineDisplayIDs(),
            let id = online.first(where: { CGDisplayIsBuiltin($0) != 0 }) {
@@ -140,9 +157,15 @@ final class DisplayManager {
         let beginErr = CGBeginDisplayConfiguration(&configRef)
         if beginErr == .success {
             let configureErr = setMode(configRef, id, true)
-            let completeErr = CGCompleteDisplayConfiguration(configRef, .permanently)
-            NSLog("MacHead: 启用内置屏结果 - 设定: %d, 提交: %d", configureErr, completeErr.rawValue)
-            if completeErr == .success { return }
+            if configureErr == 0 {
+                let completeErr = CGCompleteDisplayConfiguration(configRef, .permanently)
+                NSLog("MacHead: 启用内置屏结果 - 设定: %d, 提交: %d", configureErr, completeErr.rawValue)
+                if completeErr == .success { return }
+                CGCancelDisplayConfiguration(configRef)
+            } else {
+                NSLog("MacHead: 启用内置屏设定失败: %d", configureErr)
+                CGCancelDisplayConfiguration(configRef)
+            }
             NSLog("MacHead: 提交启用显示配置未成功，将在 0.2 秒后重试...")
         } else {
             NSLog("MacHead: CGBeginDisplayConfiguration 失败: %d", beginErr.rawValue)
