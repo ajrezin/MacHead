@@ -17,6 +17,12 @@ jobs:
         with:
           fetch-depth: 0 # 获取完整 Git 历史以生成 Technical Release Notes
 
+      - name: Setup Go 🐹
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache-dependency-path: dash/wasm/go.sum
+
       - name: Fetch and Merge Latest Nezha, ServerStatus & FRP Binaries 📥
         run: |
           mkdir -p Resources
