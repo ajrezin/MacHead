@@ -103,6 +103,10 @@ if [ -f "Resources/cloudflared" ]; then
   cp Resources/cloudflared "${APP_DIR}/Contents/Resources/cloudflared"
   chmod +x "${APP_DIR}/Contents/Resources/cloudflared"
 fi
+if [ -f "Resources/tailcat" ]; then
+  cp Resources/tailcat "${APP_DIR}/Contents/Resources/tailcat"
+  chmod +x "${APP_DIR}/Contents/Resources/tailcat"
+fi
 # devtunnel 为微软专有 EULA 组件，禁止捆绑再分发：CI 不下载、仓库不入库。
 # 本地开发构建若存在该文件会顺带打包；正式分发由用户在 App 内一键安装获取。
 if [ -f "Resources/devtunnel" ]; then
@@ -130,6 +134,7 @@ echo "Build successful! Created Universal ${APP_DIR} and installed to /Applicati
 if pgrep -x "${APP_NAME}" > /dev/null; then
   echo "Detecting running instance of ${APP_NAME}. Restarting..."
   killall "${APP_NAME}" || true
+  killall tailcat 2>/dev/null || true
   sleep 0.5
 fi
 open "/Applications/${APP_NAME}.app"

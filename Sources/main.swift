@@ -5,7 +5,30 @@ let arguments = CommandLine.arguments
 if arguments.count > 1 {
     let arg = arguments[1]
     
-    if arg == "--status" || arg == "-s" || arg == "status" {
+    if arg == "--telemetry-json" {
+        let defaults = UserDefaults.standard
+        defaults.synchronize()
+        let isHeadless = defaults.bool(forKey: "HeadlessModeEnabled")
+        let preventIdleSleep = defaults.object(forKey: "PreventIdleSleep") as? Bool ?? true
+        let keepRunningOnLidClose = defaults.bool(forKey: "KeepRunningOnLidClose")
+        let smc = SMCManager.shared
+        let payload: [String: Any] = [
+            "isHeadless": isHeadless,
+            "preventIdleSleep": preventIdleSleep,
+            "keepRunningOnLidClose": keepRunningOnLidClose,
+            "cpuTemp": round(smc.currentTemperature * 10) / 10,
+            "fanSpeed": smc.fanSpeed,
+            "isFanless": smc.isFanless
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: payload),
+           let str = String(data: data, encoding: .utf8) {
+            print(str)
+        } else {
+            print("{}")
+        }
+        exit(0)
+
+    } else if arg == "--status" || arg == "-s" || arg == "status" {
         let defaults = UserDefaults.standard
         defaults.synchronize()
         let isHeadless = defaults.bool(forKey: "HeadlessModeEnabled")

@@ -29,6 +29,11 @@ MacHead 在构建期（CI）下载并在运行时按需集成以下第三方工�
   许可证：Apache License 2.0（附 Cloudflare 商标声明）
   https://github.com/cloudflare/cloudflared
 
+* tailcat (Tailscale 无控制面点对点加密隧道工具)
+  版权所有 Tailscale Inc & contributors
+  许可证：BSD 3-Clause License
+  https://github.com/tailscale/tailcat
+
 * Microsoft Dev Tunnels CLI (devtunnel)
   版权所有 Microsoft Corporation。
   本项目不分发、不捆绑该组件；仅在用户于应用内主动发起时，

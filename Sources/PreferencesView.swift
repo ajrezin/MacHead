@@ -299,6 +299,13 @@ struct PreferencesView: View {
         }
     }
 
+    @State private var showLoggedInAccountPopover = false
+    @State private var isHoveringAccountRow = false
+    @State private var tailcatAccountLoggedIn = TailcatService.shared.isAccountLoggedIn
+    @State private var tailcatAccountName = TailcatService.shared.loggedInUserName
+    @State private var tailcatAvatarImage: NSImage? = TailcatService.shared.cachedAvatarImage
+    @State private var tailcatWaitingBrowserAuth = TailcatService.shared.isWaitingForBrowserAuth
+
     @State private var selectedTab = PreferenceTab.general
 
     // Modals visibility states for Switch + Button (设定...) sheets
@@ -385,20 +392,167 @@ struct PreferencesView: View {
                 }
                 
                 Spacer()
-                
-                // Sidebar Footer (Updates)
-                VStack(alignment: .leading, spacing: 2) {
-                    Button(action: {
-                        UpdateManager.shared.checkForUpdates(silent: false)
-                    }) {
-                        Text("检查更新...")
-                            .foregroundColor(.accentColor)
-                            .font(.footnote)
+
+                // Sidebar Footer (Global Account — Native macOS Sidebar Row Style)
+                VStack(alignment: .leading, spacing: 6) {
+                    Divider()
+                        .opacity(0.4)
+                        .padding(.horizontal, 6)
+
+                    Group {
+                        if tailcatAccountLoggedIn {
+                            Button(action: {
+                                showLoggedInAccountPopover.toggle()
+                            }) {
+                                HStack(spacing: 9) {
+                                    if let avatarImg = tailcatAvatarImage {
+                                        Image(nsImage: avatarImg)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 24, height: 24)
+                                            .clipShape(Circle())
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.primary.opacity(0.12), lineWidth: 0.5)
+                                            )
+                                            .shadow(color: Color.black.opacity(0.08), radius: 1.5, x: 0, y: 1)
+                                    } else {
+                                        ZStack {
+                                            Circle()
+                                                .fill(
+                                                    LinearGradient(
+                                                        colors: [Color.green, Color.blue],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                )
+                                                .frame(width: 24, height: 24)
+                                            Text(String((tailcatAccountName.isEmpty ? "M" : tailcatAccountName).prefix(1)).uppercased())
+                                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        }
+                                        .shadow(color: Color.black.opacity(0.08), radius: 1.5, x: 0, y: 1)
+                                    }
+
+                                    Text(tailcatAccountName)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(.primary)
+                                        .lineLimit(1)
+
+                                    Spacer(minLength: 0)
+
+                                    Image(systemName: "chevron.up.chevron.down")
+                                        .font(.system(size: 9, weight: .semibold))
+                                        .foregroundColor(.secondary.opacity(isHoveringAccountRow ? 0.85 : 0.35))
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .popover(isPresented: $showLoggedInAccountPopover, arrowEdge: .trailing) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Button(action: {
+                                        showLoggedInAccountPopover = false
+                                        if let url = URL(string: TailcatService.shared.dashEntryUrl) {
+                                            NSWorkspace.shared.open(url)
+                                        }
+                                    }) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "arrow.up.right.circle.fill")
+                                                .foregroundColor(.green)
+                                            Text("打开 Dash 控制台")
+                                                .font(.caption)
+                                            Spacer()
+                                        }
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 5)
+                                        .background(Color.primary.opacity(0.06))
+                                        .cornerRadius(6)
+                                    }
+                                    .buttonStyle(.plain)
+
+                                    Button(action: {
+                                        showLoggedInAccountPopover = false
+                                        TailcatService.shared.logoutAccount()
+                                    }) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                                .foregroundColor(.red)
+                                            Text("退出账号")
+                                                .font(.caption)
+                                                .foregroundColor(.red)
+                                            Spacer()
+                                        }
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 5)
+                                        .background(Color.red.opacity(0.08))
+                                        .cornerRadius(6)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(10)
+                                .frame(width: 168)
+                            }
+                        } else if tailcatWaitingBrowserAuth {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .scaleEffect(0.55)
+                                    .frame(width: 20, height: 20)
+                                Text("等待授权...")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                                Button("取消") {
+                                    TailcatService.shared.cancelBrowserAuth()
+                                }
+                                .font(.system(size: 11))
+                                .buttonStyle(.plain)
+                                .foregroundColor(.red)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                        } else {
+                            Button(action: {
+                                TailcatService.shared.loginWithBrowser(provider: nil)
+                            }) {
+                                HStack(spacing: 9) {
+                                    Image(systemName: "person.crop.circle")
+                                        .font(.system(size: 16, weight: .regular))
+                                        .foregroundColor(.secondary)
+                                        .frame(width: 24, height: 24)
+
+                                    Text("登录账号")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(.primary)
+                                        .lineLimit(1)
+
+                                    Spacer(minLength: 0)
+
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.system(size: 9, weight: .semibold))
+                                        .foregroundColor(.secondary.opacity(isHoveringAccountRow ? 0.85 : 0.35))
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
-                    .buttonStyle(.plain)
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(isHoveringAccountRow ? Color.primary.opacity(0.065) : Color.clear)
+                    )
+                    .onHover { hovering in
+                        withAnimation(.easeOut(duration: 0.12)) {
+                            isHoveringAccountRow = hovering
+                        }
+                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
+                .padding(.horizontal, 10)
+                .padding(.bottom, 12)
             }
             .frame(width: 180)
             .background(VisualEffectView(material: .sidebar, blendingMode: .behindWindow))
@@ -2806,8 +2960,12 @@ struct PreferencesView: View {
                 self.cloudflareStatus = status
             }
         }
-
-
+        .onReceive(NotificationCenter.default.publisher(for: .tailcatAccountChanged)) { _ in
+            self.tailcatAccountLoggedIn = TailcatService.shared.isAccountLoggedIn
+            self.tailcatAccountName = TailcatService.shared.loggedInUserName
+            self.tailcatAvatarImage = TailcatService.shared.cachedAvatarImage
+            self.tailcatWaitingBrowserAuth = TailcatService.shared.isWaitingForBrowserAuth
+        }
         .onReceive(NotificationCenter.default.publisher(for: .frpStatusChanged)) { notif in
             if let status = notif.object as? FrpStatus {
                 self.frpStatus = status

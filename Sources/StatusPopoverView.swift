@@ -8,6 +8,9 @@ struct StatusPopoverView: View {
     @State private var externalDisplaysCount = HeadlessModeController.shared.currentExternalDisplays().count
     @State private var webServerIP = WebServer.shared.getLocalIPAddress()
     @State private var copiedServerInfo = false
+    @State private var tailcatStatus: TailcatStatus = TailcatService.shared.currentStatus
+    @State private var tailcatAccountLoggedIn = TailcatService.shared.isAccountLoggedIn
+    @State private var tailcatAccountName = TailcatService.shared.loggedInUserName
     
     var onOpenPreferences: () -> Void
     var onQuitApp: () -> Void
@@ -183,6 +186,47 @@ struct StatusPopoverView: View {
                 )
             }
             
+            if case .connected = tailcatStatus, tailcatAccountLoggedIn {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "icloud.fill")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.green)
+                            Text("Web 终端已同步至云端")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.secondary)
+                        }
+                        Text(verbatim: "账号: \(tailcatAccountName)")
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .foregroundColor(.green)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+
+                    Button(action: {
+                        if let url = URL(string: TailcatService.shared.dashEntryUrl) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        Text("打开 Dash")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.green)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.green.opacity(0.14))
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.primary.opacity(0.04))
+                )
+            }
+
             Divider()
             
             // MARK: - Footer Actions
@@ -216,6 +260,16 @@ struct StatusPopoverView: View {
         .animation(.easeInOut(duration: 0.15), value: isHeadless)
         .onAppear {
             self.webServerIP = WebServer.shared.getLocalIPAddress()
+            self.tailcatStatus = TailcatService.shared.currentStatus
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .tailcatStatusChanged)) { notif in
+            if let status = notif.object as? TailcatStatus {
+                self.tailcatStatus = status
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .tailcatAccountChanged)) { _ in
+            self.tailcatAccountLoggedIn = TailcatService.shared.isAccountLoggedIn
+            self.tailcatAccountName = TailcatService.shared.loggedInUserName
         }
         .onReceive(NotificationCenter.default.publisher(for: .headlessModeStateChanged)) { _ in
             self.isHeadless = HeadlessModeController.shared.isHeadlessModeEnabled
