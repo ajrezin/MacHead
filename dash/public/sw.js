@@ -1,4 +1,4 @@
-const SW_VERSION = 'machead-dash-pwa-v1';
+const SW_VERSION = 'machead-dash-pwa-v2';
 const SHELL_CACHE = `${SW_VERSION}-shell`;
 
 const PRECACHE_URLS = [

@@ -644,6 +644,10 @@ func usagef(format string, args ...any) error {
 }
 
 func main() {
+	if len(os.Args) >= 2 && os.Args[1] == "gated-shell" {
+		runGatedLoginShell()
+		return
+	}
 	root := newRootCommand()
 	err := root.Parse(os.Args[1:])
 	if err != nil && slices.Contains(os.Args[1:], "--version") {
@@ -1467,6 +1471,11 @@ func server(logf logger.Logf, serveSpec string, execArgs []string) {
 		if opts.Shell && execArgs != nil {
 			opts.Exec = execArgs
 			fmt.Fprintf(os.Stderr, "# SSH sessions run only %v\n", strings.Join(execArgs, " "))
+		} else if opts.Shell && strings.TrimSpace(os.Getenv("MACHEAD_TERM_PASS_HASH")) != "" {
+			if exe, err := os.Executable(); err == nil && exe != "" {
+				quotedExe := "'" + strings.ReplaceAll(exe, "'", "'\\''") + "'"
+				opts.Exec = []string{quotedExe, "gated-shell"}
+			}
 		}
 		if services.Contains("files") {
 			fsrv, modeName, err := parseFilesFlag(*flagFiles)

@@ -192,6 +192,7 @@ func tailcatSignalWebRTC(this js.Value, args []js.Value) any {
 	}
 	opts := args[0]
 	addr := optString(opts, "addr")
+	passHash := optString(opts, "passHash")
 	sdp := optString(opts, "sdp")
 	derpMapURL := optString(opts, "derpMapURL")
 	lanOnly := opts.Get("lanOnly").Truthy()
@@ -212,8 +213,9 @@ func tailcatSignalWebRTC(this js.Value, args []js.Value) any {
 		defer conn.Close()
 
 		reqBytes, _ := json.Marshal(map[string]any{
-			"sdp":     sdp,
-			"lanOnly": lanOnly,
+			"passHash": passHash,
+			"sdp":      sdp,
+			"lanOnly":  lanOnly,
 		})
 		if _, err := io.Copy(conn, bytes.NewReader(reqBytes)); err != nil {
 			return nil, fmt.Errorf("发送 WebRTC Offer 失败: %w", err)

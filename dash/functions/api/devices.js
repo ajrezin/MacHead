@@ -4,10 +4,13 @@ import {
   memState,
   ensureAuthTables,
   authenticateRequest,
+  encryptTcAddr,
+  decryptTcAddr,
 } from './_store.js';
 
-function mapDeviceRow(row, nowSec) {
+async function mapDeviceRow(row, nowSec, env) {
   const lastSeenAt = Number(row.last_seen_at);
+  const tcAddr = await decryptTcAddr(row.tc_addr, env);
   return {
     deviceId: row.device_id,
     deviceName: row.device_name,
@@ -15,7 +18,7 @@ function mapDeviceRow(row, nowSec) {
     osVersion: row.os_version,
     isHeadless: Boolean(row.is_headless),
     requirePass: Boolean(row.require_pass),
-    tcAddr: row.tc_addr,
+    tcAddr,
     lastSeenAt,
     isOnline: nowSec - lastSeenAt < 120,
   };
@@ -28,12 +31,16 @@ export async function onRequestOptions() {
 /**
  * GET /api/devices
  * Returns all bound MacHead devices under the authenticated user's account.
+ * Restricted to 'web' sessions only (macos_app tokens cannot enumerate peer devices).
  */
 export async function onRequestGet(context) {
   const { request, env } = context;
   const auth = await authenticateRequest(request, env);
   if (!auth) {
     return jsonResponse({ error: '未登录或会话已过期' }, 401);
+  }
+  if (auth.clientType === 'macos_app') {
+    return jsonResponse({ error: 'Forbidden: client device token cannot list account devices' }, 403);
   }
 
   const nowSec = Math.floor(Date.now() / 1000);
@@ -43,7 +50,8 @@ export async function onRequestGet(context) {
     const list = [];
     for (const dev of memState.devices.values()) {
       if (dev.user_id === user.id) {
-        list.push(mapDeviceRow(dev, nowSec));
+        const mapped = await mapDeviceRow(dev, nowSec, env);
+        if (mapped.tcAddr) list.push(mapped);
       }
     }
     list.sort((a, b) => b.lastSeenAt - a.lastSeenAt);
@@ -60,7 +68,8 @@ export async function onRequestGet(context) {
     .bind(user.id)
     .all();
 
-  const devices = (results || []).map((row) => mapDeviceRow(row, nowSec));
+  const mappedList = await Promise.all((results || []).map((row) => mapDeviceRow(row, nowSec, env)));
+  const devices = mappedList.filter((d) => d.tcAddr);
   return jsonResponse({ ok: true, user, devices });
 }
 
@@ -82,18 +91,19 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Invalid JSON body' }, 400);
   }
 
-  const deviceId = String(body.deviceId || '').trim();
-  const deviceName = String(body.deviceName || 'MacHead').trim();
-  const modelArch = String(body.modelArch || 'Apple Silicon').trim();
-  const osVersion = String(body.osVersion || 'macOS').trim();
+  const deviceId = String(body.deviceId || '').trim().slice(0, 128);
+  const deviceName = String(body.deviceName || 'MacHead').trim().slice(0, 64);
+  const modelArch = String(body.modelArch || 'Apple Silicon').trim().slice(0, 64);
+  const osVersion = String(body.osVersion || 'macOS').trim().slice(0, 64);
   const isHeadless = body.isHeadless ? 1 : 0;
   const requirePass = body.requirePass ? 1 : 0;
   const tcAddr = String(body.tcAddr || '').trim();
 
-  if (!deviceId || !tcAddr.startsWith('tc')) {
+  if (!deviceId || !tcAddr.startsWith('tc') || tcAddr.length > 256) {
     return jsonResponse({ error: 'Missing deviceId or valid tcAddr' }, 400);
   }
 
+  const encryptedTcAddr = await encryptTcAddr(tcAddr, env);
   const nowSec = Math.floor(Date.now() / 1000);
   const { user } = auth;
 
@@ -110,7 +120,7 @@ export async function onRequestPost(context) {
       os_version: osVersion,
       is_headless: isHeadless,
       require_pass: requirePass,
-      tc_addr: tcAddr,
+      tc_addr: encryptedTcAddr,
       last_seen_at: nowSec,
       created_at: existing ? existing.created_at : nowSec,
     });
@@ -140,7 +150,7 @@ export async function onRequestPost(context) {
       osVersion,
       isHeadless,
       requirePass,
-      tcAddr,
+      encryptedTcAddr,
       nowSec,
       nowSec
     )
@@ -175,25 +185,26 @@ export async function onRequestDelete(context) {
     if (existing && existing.user_id === auth.user.id) {
       memState.devices.delete(deviceId);
     }
-    for (const [th, sess] of memState.sessions.entries()) {
-      if (sess.userId === auth.user.id && sess.clientType === 'macos_app') {
-        memState.sessions.delete(th);
-        memState.revokedTokens.add(th);
-      }
+    if (auth.clientType === 'macos_app') {
+      memState.sessions.delete(auth.tokenHash);
+      memState.revokedTokens.add(auth.tokenHash);
     }
     return jsonResponse({ ok: true });
   }
 
   await ensureAuthTables(env.DB);
-  await env.DB.batch([
+  const statements = [
     env.DB.prepare('DELETE FROM user_devices WHERE device_id = ? AND user_id = ?').bind(
       deviceId,
       auth.user.id
     ),
-    env.DB.prepare("DELETE FROM auth_sessions WHERE user_id = ? AND client_type = 'macos_app'").bind(
-      auth.user.id
-    ),
-  ]);
+  ];
+  if (auth.clientType === 'macos_app') {
+    statements.push(
+      env.DB.prepare('DELETE FROM auth_sessions WHERE token_hash = ?').bind(auth.tokenHash)
+    );
+  }
+  await env.DB.batch(statements);
 
   return jsonResponse({ ok: true });
 }

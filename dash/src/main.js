@@ -149,7 +149,7 @@ let currentEditingPath = '';
 let statusPollTimer = null;
 let currentSysStatus = null;
 
-const WASM_VERSION = 'v5';
+const WASM_VERSION = 'v6';
 const WASM_CACHE_NAME = `machead-tailcat-wasm-${WASM_VERSION}`;
 const WASM_DECOMPRESSED_KEY = `/terminal/tailcat.wasm.decompressed.${WASM_VERSION}`;
 
@@ -160,6 +160,7 @@ const LOCAL_RPC_ENDPOINT = 'http://127.0.0.1:41891/webrtc/rpc';
 
 const urlParams = new URLSearchParams(window.location.search);
 let pendingAppAuthRequestId = urlParams.get('app_auth') || '';
+let pendingAppCodeChallenge = urlParams.get('code_challenge') || '';
 let pendingAppDeviceName = urlParams.get('device_name') || 'MacHead 客户端';
 const requestedProvider = urlParams.get('provider') || '';
 const initialAuthError = urlParams.get('auth_error') || '';
@@ -366,6 +367,9 @@ function startOAuthLogin(provider, triggerBtn = null) {
   if (pendingAppAuthRequestId) {
     loginUrl.searchParams.set('app_auth', pendingAppAuthRequestId);
   }
+  if (pendingAppCodeChallenge) {
+    loginUrl.searchParams.set('code_challenge', pendingAppCodeChallenge);
+  }
   if (pendingAppDeviceName) {
     loginUrl.searchParams.set('device_name', pendingAppDeviceName);
   }
@@ -411,6 +415,7 @@ async function performAppHandoffApproval() {
       body: JSON.stringify({
         action: 'approve_app',
         requestId: pendingAppAuthRequestId,
+        codeChallenge: pendingAppCodeChallenge,
         deviceName: pendingAppDeviceName,
       }),
     });
@@ -418,8 +423,10 @@ async function performAppHandoffApproval() {
     if (resp.ok && data.ok) {
       const boundName = pendingAppDeviceName;
       pendingAppAuthRequestId = '';
+      pendingAppCodeChallenge = '';
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete('app_auth');
+      cleanUrl.searchParams.delete('code_challenge');
       cleanUrl.searchParams.delete('device_name');
       cleanUrl.searchParams.delete('provider');
       cleanUrl.searchParams.delete('quick_provider');
@@ -944,8 +951,8 @@ async function attemptHappyEyeballsTrack(addr, mode, abortSignal) {
     }
 
     let ans = null;
+    const passHash = devicePassHashes.get(addr) || '';
     if (mode === 'loopback-direct') {
-      const addrHash = await getAddrSha256Hex(addr);
       const ctrl = new AbortController();
       const fetchTimer = setTimeout(() => ctrl.abort(), 320);
       try {
@@ -953,7 +960,8 @@ async function attemptHappyEyeballsTrack(addr, mode, abortSignal) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            addrHash,
+            addr,
+            passHash,
             sdp: offerSDP || pc.localDescription.sdp,
             lanOnly: true,
           }),
@@ -980,6 +988,7 @@ async function attemptHappyEyeballsTrack(addr, mode, abortSignal) {
       }
       ans = await globalThis.tailcatSignalWebRTC({
         addr,
+        passHash,
         sdp: offerSDP || pc.localDescription.sdp,
         lanOnly: isLANOnly,
       });
@@ -1276,14 +1285,13 @@ async function callDeviceRPC(addr, method, params = {}, isPasswordRetry = false)
   // Track 2: Localhost Loopback HTTP RPC (0ms when browser is on the same Mac)
   if (!resp && !nonLoopbackAddrs.has(addr)) {
     try {
-      const addrHash = await getAddrSha256Hex(addr);
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 900);
       try {
         const httpResp = await fetch(LOCAL_RPC_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, addrHash, passHash, method, params }),
+          body: JSON.stringify({ id, addr, passHash, method, params }),
           signal: ctrl.signal,
         });
         if (httpResp.ok) {

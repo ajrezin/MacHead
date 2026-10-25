@@ -31,10 +31,19 @@ public final class TailcatService {
     public private(set) var isWaitingForBrowserAuth: Bool = false
     public private(set) var isDeviceSyncedToAccount: Bool = false
     public private(set) var cachedAvatarImage: NSImage? = nil
+    private var cachedAccountToken: String = ""
 
     public var isAccountLoggedIn: Bool {
-        let token = UserDefaults.standard.string(forKey: "tailcatAccountToken") ?? ""
-        return !token.isEmpty
+        return !accountToken.isEmpty
+    }
+
+    private var accountToken: String {
+        if !cachedAccountToken.isEmpty {
+            return cachedAccountToken
+        }
+        let loaded = loadEncryptedAccountToken()
+        cachedAccountToken = loaded
+        return loaded
     }
 
     public var loggedInUserName: String {
@@ -102,6 +111,7 @@ public final class TailcatService {
     }
 
     private init() {
+        migrateLegacyAccountTokenIfNeeded()
         NotificationCenter.default.addObserver(
             forName: .headlessModeStateChanged,
             object: nil,
@@ -135,6 +145,79 @@ public final class TailcatService {
 
     public static var persistentKeyPath: String {
         return appSupportDirectory.appendingPathComponent("persistent.private.json").path
+    }
+
+    private static var encryptedTokenPath: String {
+        return appSupportDirectory.appendingPathComponent("account_token.enc").path
+    }
+
+    private static var vaultSeedPath: String {
+        return appSupportDirectory.appendingPathComponent(".vault_key").path
+    }
+
+    private func resolveVaultSymmetricKey() -> SymmetricKey {
+        let dir = Self.appSupportDirectory
+        try? FileManager.default.createDirectory(
+            at: dir,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: NSNumber(value: Int16(0o700))]
+        )
+        _ = chmod(dir.path, S_IRWXU)
+
+        let seedPath = Self.vaultSeedPath
+        var seedData: Data
+        if let existing = try? Data(contentsOf: URL(fileURLWithPath: seedPath)), existing.count >= 32 {
+            seedData = existing
+        } else {
+            var bytes = [UInt8](repeating: 0, count: 32)
+            _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+            seedData = Data(bytes)
+            try? seedData.write(to: URL(fileURLWithPath: seedPath), options: .atomic)
+            _ = chmod(seedPath, S_IRUSR | S_IWUSR)
+        }
+        var combined = seedData
+        combined.append(Data(deviceId.utf8))
+        let digest = SHA256.hash(data: combined)
+        return SymmetricKey(data: Data(digest))
+    }
+
+    private func saveEncryptedAccountToken(_ token: String) {
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        cachedAccountToken = trimmed
+        UserDefaults.standard.removeObject(forKey: "tailcatAccountToken")
+        guard !trimmed.isEmpty else {
+            try? FileManager.default.removeItem(atPath: Self.encryptedTokenPath)
+            return
+        }
+        let key = resolveVaultSymmetricKey()
+        if let sealed = try? AES.GCM.seal(Data(trimmed.utf8), using: key),
+           let combined = sealed.combined {
+            try? combined.write(to: URL(fileURLWithPath: Self.encryptedTokenPath), options: .atomic)
+            _ = chmod(Self.encryptedTokenPath, S_IRUSR | S_IWUSR)
+        }
+    }
+
+    private func loadEncryptedAccountToken() -> String {
+        if let encData = try? Data(contentsOf: URL(fileURLWithPath: Self.encryptedTokenPath)),
+           let box = try? AES.GCM.SealedBox(combined: encData),
+           let decData = try? AES.GCM.open(box, using: resolveVaultSymmetricKey()),
+           let str = String(data: decData, encoding: .utf8),
+           !str.isEmpty {
+            return str
+        }
+        if let legacy = UserDefaults.standard.string(forKey: "tailcatAccountToken"), !legacy.isEmpty {
+            saveEncryptedAccountToken(legacy)
+            return legacy
+        }
+        return ""
+    }
+
+    private func migrateLegacyAccountTokenIfNeeded() {
+        if let legacy = UserDefaults.standard.string(forKey: "tailcatAccountToken"), !legacy.isEmpty {
+            saveEncryptedAccountToken(legacy)
+        } else {
+            cachedAccountToken = loadEncryptedAccountToken()
+        }
     }
 
     public func findBinaryPath() -> String? {
@@ -230,7 +313,7 @@ public final class TailcatService {
                 let rawPass = self.effectiveAccessPassword()
                 if !rawPass.isEmpty {
                     env["MACHEAD_TERM_PASS_HASH"] = Self.sha256Hex(rawPass)
-                    args.append(contentsOf: ["--", "/bin/zsh", "-c", Self.passwordGateShellScript])
+                    args.append(contentsOf: ["--", binaryPath, "gated-shell"])
                 }
             }
 
@@ -444,6 +527,8 @@ public final class TailcatService {
 
     public func loginWithBrowser(provider: String? = nil, completion: ((Bool, String) -> Void)? = nil) {
         let requestId = UUID().uuidString.lowercased()
+        let codeVerifier = (UUID().uuidString + UUID().uuidString).replacingOccurrences(of: "-", with: "").lowercased()
+        let codeChallenge = Self.sha256Hex(codeVerifier)
         let queryValueAllowed = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&+=;?#/"))
         let encodedHost = cachedHostName.addingPercentEncoding(withAllowedCharacters: queryValueAllowed) ?? "MacHead"
         let base = webTerminalBaseUrl
@@ -451,14 +536,19 @@ public final class TailcatService {
         isWaitingForBrowserAuth = true
         NotificationCenter.default.post(name: .tailcatAccountChanged, object: nil)
 
-        var urlStr = "\(base)/?app_auth=\(requestId)&device_name=\(encodedHost)"
+        var urlStr = "\(base)/?app_auth=\(requestId)&code_challenge=\(codeChallenge)&device_name=\(encodedHost)"
         if let p = provider, !p.isEmpty {
             urlStr += "&provider=\(p)"
         }
         if let url = URL(string: urlStr) {
             NSWorkspace.shared.open(url)
         }
-        startPollingAppAuth(requestId: requestId, primaryBase: base, completion: completion)
+        startPollingAppAuth(
+            requestId: requestId,
+            codeVerifier: codeVerifier,
+            primaryBase: base,
+            completion: completion
+        )
     }
 
     public func cancelBrowserAuth() {
@@ -470,6 +560,7 @@ public final class TailcatService {
 
     private func startPollingAppAuth(
         requestId: String,
+        codeVerifier: String,
         primaryBase: String,
         completion: ((Bool, String) -> Void)?
     ) {
@@ -495,7 +586,7 @@ public final class TailcatService {
             }
 
             for base in bases {
-                guard let url = URL(string: "\(base)/api/auth?action=poll_app&request_id=\(requestId)") else { continue }
+                guard let url = URL(string: "\(base)/api/auth?action=poll_app&request_id=\(requestId)&code_verifier=\(codeVerifier)") else { continue }
                 var req = URLRequest(url: url)
                 req.timeoutInterval = 4
                 URLSession.shared.dataTask(with: req) { [weak self] data, resp, _ in
@@ -530,7 +621,7 @@ public final class TailcatService {
         let email = (user["email"] as? String) ?? ""
         let avatarUrl = (user["avatar_url"] as? String) ?? ""
 
-        defaults.set(sessionToken, forKey: "tailcatAccountToken")
+        saveEncryptedAccountToken(sessionToken)
         defaults.set(name, forKey: "tailcatAccountName")
         defaults.set(provider, forKey: "tailcatAccountProvider")
         defaults.set(email, forKey: "tailcatAccountEmail")
@@ -557,7 +648,7 @@ public final class TailcatService {
         stopDeviceHeartbeatTimer()
 
         let defaults = UserDefaults.standard
-        let token = defaults.string(forKey: "tailcatAccountToken") ?? ""
+        let token = accountToken
         let devId = deviceId
 
         if !token.isEmpty {
@@ -581,7 +672,7 @@ public final class TailcatService {
             }
         }
 
-        defaults.removeObject(forKey: "tailcatAccountToken")
+        saveEncryptedAccountToken("")
         defaults.removeObject(forKey: "tailcatAccountName")
         defaults.removeObject(forKey: "tailcatAccountProvider")
         defaults.removeObject(forKey: "tailcatAccountEmail")
@@ -592,12 +683,15 @@ public final class TailcatService {
         isDeviceSyncedToAccount = false
         stop()
 
+        // Rotate persistent WireGuard key so any previously issued tc_addr is permanently invalidated
+        try? FileManager.default.removeItem(atPath: Self.persistentKeyPath)
+
         NotificationCenter.default.post(name: .tailcatAccountChanged, object: nil)
     }
 
     public func syncDeviceToAccount() {
         let defaults = UserDefaults.standard
-        let token = defaults.string(forKey: "tailcatAccountToken") ?? ""
+        let token = accountToken
         guard !token.isEmpty, !currentTcAddr.isEmpty else { return }
 
         let requirePass = defaults.bool(forKey: "tailcatRequirePassword")
@@ -688,21 +782,4 @@ public final class TailcatService {
         try? killTask.run()
         killTask.waitUntilExit()
     }
-
-    private static let passwordGateShellScript: String = """
-    printf '\\033[1;36m🔒 MacHead 安全终端保护已开启\\033[0m\\r\\n'
-    for attempt in 1 2 3; do
-      printf '请输入访问口令 (%d/3): ' "$attempt"
-      IFS= read -rs -t 45 input_pass || { printf '\\r\\n\\033[31m⏱️ 输入超时，会话已断开。\\033[0m\\r\\n'; exit 1; }
-      printf '\\r\\n'
-      input_hash=$(printf '%s' "$input_pass" | /usr/bin/shasum -a 256 | /usr/bin/awk '{print $1}')
-      if [ "$input_hash" = "$MACHEAD_TERM_PASS_HASH" ]; then
-        printf '\\033[32m✅ 口令验证通过，正在进入本地终端...\\033[0m\\r\\n\\r\\n'
-        exec -l "${SHELL:-/bin/zsh}"
-      fi
-      printf '\\033[31m❌ 访问口令错误，请重试。\\033[0m\\r\\n'
-    done
-    printf '\\033[31m⛔ 连续 3 次口令错误，连接已拒绝。\\033[0m\\r\\n'
-    exit 1
-    """
 }

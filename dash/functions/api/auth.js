@@ -8,9 +8,11 @@ import {
   signPayload,
   verifySignedPayload,
   isAllowedOrigin,
+  sha256Hex,
 } from './_store.js';
 
 const REQUEST_ID_REGEX = /^[a-f0-9-]{16,64}$/i;
+const CODE_CHALLENGE_REGEX = /^[a-f0-9]{64}$/i;
 const OAUTH_STATE_MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
 
 function signState(obj, env) {
@@ -45,6 +47,8 @@ export async function handleOAuthLogin(request, env, providerOverride) {
   const provider = (providerOverride || url.searchParams.get('provider') || 'github').toLowerCase();
   const rawAppAuth = (url.searchParams.get('app_auth') || '').trim();
   const appAuth = REQUEST_ID_REGEX.test(rawAppAuth) ? rawAppAuth : '';
+  const rawChallenge = (url.searchParams.get('code_challenge') || '').trim().toLowerCase();
+  const codeChallenge = CODE_CHALLENGE_REGEX.test(rawChallenge) ? rawChallenge : '';
   const deviceName = (url.searchParams.get('device_name') || '').slice(0, 64);
   const returnOrigin = isAllowedOrigin(url.origin) ? url.origin : 'https://dash.headlessmac.com';
   const callbackUrl = resolveCallbackUrl(url, provider, env);
@@ -53,6 +57,7 @@ export async function handleOAuthLogin(request, env, providerOverride) {
     {
       provider,
       appAuth,
+      codeChallenge,
       deviceName,
       returnOrigin,
       callbackUrl,
@@ -245,6 +250,9 @@ export async function handleOAuthCallback(request, env, providerOverride) {
     if (stateObj.appAuth && REQUEST_ID_REGEX.test(stateObj.appAuth)) {
       redirectTarget.searchParams.set('app_auth', stateObj.appAuth);
     }
+    if (stateObj.codeChallenge && CODE_CHALLENGE_REGEX.test(stateObj.codeChallenge)) {
+      redirectTarget.searchParams.set('code_challenge', stateObj.codeChallenge);
+    }
     if (stateObj.deviceName) {
       redirectTarget.searchParams.set('device_name', String(stateObj.deviceName).slice(0, 64));
     }
@@ -280,6 +288,7 @@ export async function onRequestGet(context) {
 
   if (action === 'poll_app') {
     const requestId = (url.searchParams.get('request_id') || '').trim();
+    const codeVerifier = (url.searchParams.get('code_verifier') || '').trim();
     if (!REQUEST_ID_REGEX.test(requestId)) {
       return jsonResponse({ error: 'Invalid request_id format' }, 400);
     }
@@ -290,12 +299,21 @@ export async function onRequestGet(context) {
       if (!rec || rec.expiresAt < nowSec || !rec.sessionToken) {
         return jsonResponse({ ok: true, status: 'pending' });
       }
+      const parsedUser = JSON.parse(rec.userJson);
+      const expectedChallenge = String(parsedUser.__codeChallenge || '').trim().toLowerCase();
+      delete parsedUser.__codeChallenge;
+      if (expectedChallenge) {
+        const actualChallenge = codeVerifier ? await sha256Hex(codeVerifier) : '';
+        if (actualChallenge !== expectedChallenge) {
+          return jsonResponse({ error: 'Forbidden: invalid PKCE code_verifier' }, 403);
+        }
+      }
       memState.appAuthRequests.delete(requestId);
       return jsonResponse({
         ok: true,
         status: 'approved',
         sessionToken: rec.sessionToken,
-        user: JSON.parse(rec.userJson),
+        user: parsedUser,
       });
     }
 
@@ -310,6 +328,16 @@ export async function onRequestGet(context) {
       return jsonResponse({ ok: true, status: 'pending' });
     }
 
+    const parsedUser = JSON.parse(row.user_json);
+    const expectedChallenge = String(parsedUser.__codeChallenge || '').trim().toLowerCase();
+    delete parsedUser.__codeChallenge;
+    if (expectedChallenge) {
+      const actualChallenge = codeVerifier ? await sha256Hex(codeVerifier) : '';
+      if (actualChallenge !== expectedChallenge) {
+        return jsonResponse({ error: 'Forbidden: invalid PKCE code_verifier' }, 403);
+      }
+    }
+
     await env.DB.prepare('DELETE FROM app_auth_requests WHERE request_id = ?')
       .bind(requestId)
       .run();
@@ -318,7 +346,7 @@ export async function onRequestGet(context) {
       ok: true,
       status: 'approved',
       sessionToken: row.session_token,
-      user: JSON.parse(row.user_json),
+      user: parsedUser,
     });
   }
 
@@ -350,8 +378,13 @@ export async function onRequestPost(context) {
     if (!auth) {
       return jsonResponse({ error: '请先登录账号后再授权客户端' }, 401);
     }
+    if (auth.clientType === 'macos_app') {
+      return jsonResponse({ error: 'Forbidden: client token cannot approve another client' }, 403);
+    }
 
     const requestId = String(body.requestId || '').trim();
+    const rawChallenge = String(body.codeChallenge || '').trim().toLowerCase();
+    const codeChallenge = CODE_CHALLENGE_REGEX.test(rawChallenge) ? rawChallenge : '';
     const deviceName = String(body.deviceName || 'MacHead').trim().slice(0, 64);
     if (!REQUEST_ID_REGEX.test(requestId)) {
       return jsonResponse({ error: 'Invalid requestId format' }, 400);
@@ -369,7 +402,10 @@ export async function onRequestPost(context) {
 
     const nowSec = Math.floor(Date.now() / 1000);
     const expiresAt = nowSec + 300;
-    const userJson = JSON.stringify(appSession.user);
+    const userJson = JSON.stringify({
+      ...appSession.user,
+      ...(codeChallenge ? { __codeChallenge: codeChallenge } : {}),
+    });
 
     if (!env.DB) {
       const existing = memState.appAuthRequests.get(requestId);

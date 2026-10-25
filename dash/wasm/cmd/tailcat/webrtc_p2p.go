@@ -6,6 +6,7 @@
 package main
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
@@ -16,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -27,11 +29,13 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/pion/webrtc/v4"
+	"golang.org/x/term"
 )
 
 type rtcOfferPayload struct {
 	Addr     string `json:"addr,omitempty"`
 	AddrHash string `json:"addrHash,omitempty"`
+	PassHash string `json:"passHash,omitempty"`
 	SDP      string `json:"sdp"`
 	LANOnly  bool   `json:"lanOnly,omitempty"`
 }
@@ -113,7 +117,7 @@ func negotiateWebRTCAnswer(req rtcOfferPayload, execArgs []string) rtcAnswerPayl
 			return
 		}
 		if strings.HasPrefix(label, "pty") {
-			serveWebRTCPTYChannel(dc, label, execArgs)
+			serveWebRTCPTYChannel(dc, label, execArgs, verifyTermPassHash(req.PassHash))
 		}
 	})
 
@@ -217,6 +221,90 @@ func negotiateWebRTCAnswer(req rtcOfferPayload, execArgs []string) rtcAnswerPayl
 	}
 }
 
+func verifyTermPassHash(providedHash string) bool {
+	expectedHash := strings.ToLower(strings.TrimSpace(os.Getenv("MACHEAD_TERM_PASS_HASH")))
+	if expectedHash == "" {
+		return true
+	}
+	prov := strings.ToLower(strings.TrimSpace(providedHash))
+	return len(prov) == len(expectedHash) &&
+		subtle.ConstantTimeCompare([]byte(prov), []byte(expectedHash)) == 1
+}
+
+func runGatedLoginShell() {
+	signal.Ignore(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTSTP)
+
+	expectedHash := strings.ToLower(strings.TrimSpace(os.Getenv("MACHEAD_TERM_PASS_HASH")))
+	if expectedHash != "" && os.Getenv("MACHEAD_PASS_VERIFIED") != "1" {
+		timer := time.AfterFunc(45*time.Second, func() {
+			_, _ = os.Stdout.WriteString("\r\n⛔ 口令验证超时，连接已断开。\r\n")
+			os.Exit(1)
+		})
+		_, _ = os.Stdout.WriteString("\r\n🔒 MacHead 远程终端已启用访问口令保护\r\n")
+		authenticated := false
+		reader := bufio.NewReader(os.Stdin)
+		fd := int(os.Stdin.Fd())
+		for attempt := 1; attempt <= 3; attempt++ {
+			_, _ = os.Stdout.WriteString("请输入访问口令 (Password): ")
+			var rawPass []byte
+			var err error
+			if term.IsTerminal(fd) {
+				rawPass, err = term.ReadPassword(fd)
+				_, _ = os.Stdout.WriteString("\r\n")
+			} else {
+				line, readErr := reader.ReadString('\n')
+				rawPass = []byte(strings.TrimRight(line, "\r\n"))
+				err = readErr
+			}
+			if err != nil && len(rawPass) == 0 {
+				os.Exit(1)
+			}
+			trimmed := strings.TrimSpace(string(rawPass))
+			sum := sha256.Sum256([]byte(trimmed))
+			gotHash := fmt.Sprintf("%x", sum)
+			if len(gotHash) == len(expectedHash) &&
+				subtle.ConstantTimeCompare([]byte(gotHash), []byte(expectedHash)) == 1 {
+				authenticated = true
+				break
+			}
+			time.Sleep(800 * time.Millisecond)
+			if attempt < 3 {
+				_, _ = os.Stdout.WriteString("❌ 口令错误，请重试。\r\n")
+			}
+		}
+		timer.Stop()
+		if !authenticated {
+			_, _ = os.Stdout.WriteString("⛔ 验证失败次数过多，连接已断开。\r\n")
+			os.Exit(1)
+		}
+		_, _ = os.Stdout.WriteString("✅ 口令验证通过，正在进入终端...\r\n\r\n")
+	}
+
+	signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTSTP)
+
+	shell := "/bin/zsh"
+	if envShell := strings.TrimSpace(os.Getenv("SHELL")); envShell != "" {
+		shell = envShell
+	}
+	var cleanEnv []string
+	for _, kv := range os.Environ() {
+		if strings.HasPrefix(kv, "MACHEAD_TERM_PASS_HASH=") ||
+			strings.HasPrefix(kv, "MACHEAD_PASS_VERIFIED=") {
+			continue
+		}
+		cleanEnv = append(cleanEnv, kv)
+	}
+	argv0 := "-" + filepath.Base(shell)
+	if err := syscall.Exec(shell, []string{argv0, "-l"}, cleanEnv); err != nil {
+		cmd := exec.Command(shell, "-l")
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Env = cleanEnv
+		_ = cmd.Run()
+	}
+}
+
 func isAllowedSignalHost(host string) bool {
 	h := strings.ToLower(strings.TrimSpace(host))
 	return h == "127.0.0.1:41891" || h == "localhost:41891"
@@ -227,9 +315,11 @@ func isAllowedSignalOrigin(origin string) bool {
 	if o == "https://dash.headlessmac.com" || o == "https://headlessmac.com" {
 		return true
 	}
-	if strings.HasPrefix(o, "http://localhost:") || o == "http://localhost" ||
-		strings.HasPrefix(o, "http://127.0.0.1:") || o == "http://127.0.0.1" {
-		return true
+	if os.Getenv("MACHEAD_ALLOW_LOCAL_DEV_ORIGIN") == "1" {
+		if strings.HasPrefix(o, "http://localhost:") || o == "http://localhost" ||
+			strings.HasPrefix(o, "http://127.0.0.1:") || o == "http://127.0.0.1" {
+			return true
+		}
 	}
 	return false
 }
@@ -244,20 +334,18 @@ func checkLoopbackPostRequest(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	// Restrict browser cross-origin requests to trusted MacHead origins only
+	// Strictly require a trusted browser Origin header on all loopback requests
 	origin := strings.TrimSpace(r.Header.Get("Origin"))
-	if origin != "" {
-		if !isAllowedSignalOrigin(origin) {
-			w.WriteHeader(http.StatusForbidden)
-			_ = json.NewEncoder(w).Encode(map[string]any{"ok": false, "error": "forbidden origin"})
-			return false
-		}
-		w.Header().Set("Access-Control-Allow-Origin", origin)
-		w.Header().Set("Vary", "Origin")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Private-Network", "true")
+	if origin == "" || !isAllowedSignalOrigin(origin) {
+		w.WriteHeader(http.StatusForbidden)
+		_ = json.NewEncoder(w).Encode(map[string]any{"ok": false, "error": "forbidden origin"})
+		return false
 	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Vary", "Origin")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Private-Network", "true")
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
@@ -277,17 +365,11 @@ func startLocalHappyEyeballsServer(connStr string, execArgs []string) {
 		return
 	}
 
-	connStrHash := fmt.Sprintf("%x", sha256.Sum256([]byte(strings.TrimSpace(connStr))))
-	matchesLocalAddr := func(rawAddr, rawHash string) bool {
-		if h := strings.ToLower(strings.TrimSpace(rawHash)); len(h) == len(connStrHash) {
-			if subtle.ConstantTimeCompare([]byte(h), []byte(connStrHash)) == 1 {
-				return true
-			}
-		}
-		if a := strings.TrimSpace(rawAddr); len(a) == len(connStr) && len(a) > 0 {
-			if subtle.ConstantTimeCompare([]byte(a), []byte(connStr)) == 1 {
-				return true
-			}
+	expectedAddr := strings.TrimSpace(connStr)
+	matchesLocalAddr := func(rawAddr string) bool {
+		a := strings.TrimSpace(rawAddr)
+		if len(a) == len(expectedAddr) && len(a) > 0 {
+			return subtle.ConstantTimeCompare([]byte(a), []byte(expectedAddr)) == 1
 		}
 		return false
 	}
@@ -305,7 +387,7 @@ func startLocalHappyEyeballsServer(connStr string, execArgs []string) {
 			return
 		}
 
-		if !matchesLocalAddr(req.Addr, req.AddrHash) {
+		if !matchesLocalAddr(req.Addr) {
 			w.WriteHeader(http.StatusForbidden)
 			_ = json.NewEncoder(w).Encode(rtcAnswerPayload{OK: false, Error: "unauthorized device address"})
 			return
@@ -333,7 +415,7 @@ func startLocalHappyEyeballsServer(connStr string, execArgs []string) {
 			return
 		}
 
-		if !matchesLocalAddr(req.Addr, req.AddrHash) {
+		if !matchesLocalAddr(req.Addr) {
 			w.WriteHeader(http.StatusForbidden)
 			_ = json.NewEncoder(w).Encode(rpcResponse{OK: false, Error: "unauthorized device address"})
 			return
@@ -400,7 +482,7 @@ func handleWebRTCSignalingConn(execArgs []string) func(net.Conn) {
 	return cols, rows, term, customCwd
 }
 
-func buildShellCmd(term, customCwd string, execArgs []string) *exec.Cmd {
+func buildShellCmd(termName, customCwd string, execArgs []string, passVerified bool) *exec.Cmd {
 	u, err := user.Current()
 	shell := "/bin/zsh"
 	homeDir := os.Getenv("HOME")
@@ -420,8 +502,14 @@ func buildShellCmd(term, customCwd string, execArgs []string) *exec.Cmd {
 	}
 
 	var cmd *exec.Cmd
-	if len(execArgs) > 0 {
+	if len(execArgs) > 0 && !passVerified {
 		cmd = exec.Command(execArgs[0], execArgs[1:]...)
+	} else if strings.TrimSpace(os.Getenv("MACHEAD_TERM_PASS_HASH")) != "" && !passVerified {
+		if exe, exeErr := os.Executable(); exeErr == nil && exe != "" {
+			cmd = exec.Command(exe, "gated-shell")
+		} else {
+			cmd = exec.Command(shell, "-l")
+		}
 	} else {
 		cmd = exec.Command(shell, "-l")
 	}
@@ -432,9 +520,18 @@ func buildShellCmd(term, customCwd string, execArgs []string) *exec.Cmd {
 		cmd.Dir = homeDir
 	}
 
-	env := os.Environ()
+	var env []string
+	for _, kv := range os.Environ() {
+		if passVerified && strings.HasPrefix(kv, "MACHEAD_TERM_PASS_HASH=") {
+			continue
+		}
+		env = append(env, kv)
+	}
+	if passVerified {
+		env = append(env, "MACHEAD_PASS_VERIFIED=1")
+	}
 	env = append(env,
-		"TERM="+term,
+		"TERM="+termName,
 		"SHELL="+shell,
 		"USER="+username,
 		"HOME="+homeDir,
@@ -445,8 +542,8 @@ func buildShellCmd(term, customCwd string, execArgs []string) *exec.Cmd {
 	return cmd
 }
 
-func serveWebRTCPTYChannel(dc *webrtc.DataChannel, label string, execArgs []string) {
-	cols, rows, term, customCwd := parsePTYLabel(label)
+func serveWebRTCPTYChannel(dc *webrtc.DataChannel, label string, execArgs []string, passVerified bool) {
+	cols, rows, termName, customCwd := parsePTYLabel(label)
 	var (
 		ptmxMu    sync.Mutex
 		ptmxFile  *os.File
@@ -492,7 +589,7 @@ func serveWebRTCPTYChannel(dc *webrtc.DataChannel, label string, execArgs []stri
 			return ptmxFile, nil
 		}
 
-		cmd := buildShellCmd(term, customCwd, execArgs)
+		cmd := buildShellCmd(termName, customCwd, execArgs, passVerified)
 		ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{
 			Rows: uint16(rows),
 			Cols: uint16(cols),

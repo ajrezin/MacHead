@@ -126,7 +126,62 @@ export const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Cache-Control': 'no-store, no-cache, must-revalidate',
   'Content-Type': 'application/json; charset=utf-8',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
 };
+
+let cachedAesSecret = null;
+let cachedAesKeyPromise = null;
+
+function getAesGcmKey(secret) {
+  if (secret === cachedAesSecret && cachedAesKeyPromise) {
+    return cachedAesKeyPromise;
+  }
+  cachedAesSecret = secret;
+  cachedAesKeyPromise = (async () => {
+    const rawHash = await crypto.subtle.digest(
+      'SHA-256',
+      textEncoder.encode(`machead-tcaddr-aes256gcm-v1:${secret}`)
+    );
+    return crypto.subtle.importKey('raw', rawHash, { name: 'AES-GCM' }, false, [
+      'encrypt',
+      'decrypt',
+    ]);
+  })();
+  return cachedAesKeyPromise;
+}
+
+export async function encryptTcAddr(plaintext, env) {
+  const raw = String(plaintext || '').trim();
+  if (!raw) return '';
+  if (raw.startsWith('enc_v1:')) return raw;
+  const secret = resolveSigningSecret(env);
+  const key = await getAesGcmKey(secret);
+  const iv = new Uint8Array(12);
+  crypto.getRandomValues(iv);
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, textEncoder.encode(raw));
+  return `enc_v1:${toBase64Url(iv)}.${toBase64Url(ct)}`;
+}
+
+export async function decryptTcAddr(stored, env) {
+  const val = String(stored || '').trim();
+  if (!val) return '';
+  if (!val.startsWith('enc_v1:')) return val;
+  try {
+    const body = val.slice('enc_v1:'.length);
+    const dotIdx = body.indexOf('.');
+    if (dotIdx === -1) return '';
+    const iv = fromBase64Url(body.slice(0, dotIdx));
+    const ct = fromBase64Url(body.slice(dotIdx + 1));
+    const secret = resolveSigningSecret(env);
+    const key = await getAesGcmKey(secret);
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return textDecoder.decode(pt);
+  } catch {
+    return '';
+  }
+}
 
 export function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -360,10 +415,11 @@ export async function authenticateRequest(request, env) {
     const sess = memState.sessions.get(tokenHash);
     if (sess && sess.expiresAt >= nowSec) {
       const user = memState.users.get(sess.userId);
-      if (user) return { user, tokenHash };
+      if (user) return { user, tokenHash, clientType: sess.clientType || 'web' };
     }
     const claims = await verifySignedSessionToken(rawToken, env);
     if (claims && Number(claims.exp) >= nowSec) {
+      const clientType = claims.ct || 'web';
       const userObj = {
         id: claims.uid || `usr_${claims.p}_${claims.sub}`,
         provider: claims.p || 'github',
@@ -376,11 +432,11 @@ export async function authenticateRequest(request, env) {
       memState.users.set(userObj.id, userObj);
       memState.sessions.set(tokenHash, {
         userId: userObj.id,
-        clientType: claims.ct || 'web',
+        clientType,
         expiresAt: Number(claims.exp),
         createdAt: claims.iat || nowSec,
       });
-      return { user: userObj, tokenHash };
+      return { user: userObj, tokenHash, clientType };
     }
     return null;
   }
@@ -389,7 +445,7 @@ export async function authenticateRequest(request, env) {
   // Any logged-out or deleted token_hash is immediately rejected across all edge nodes.
   await ensureAuthTables(env.DB);
   const row = await env.DB.prepare(`
-    SELECT u.id, u.provider, u.provider_sub, u.email, u.name, u.avatar_url, u.created_at
+    SELECT u.id, u.provider, u.provider_sub, u.email, u.name, u.avatar_url, u.created_at, s.client_type
     FROM auth_sessions s
     JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = ? AND s.expires_at >= ?
@@ -397,6 +453,18 @@ export async function authenticateRequest(request, env) {
     .bind(tokenHash, nowSec)
     .first();
 
-  if (row) return { user: row, tokenHash };
+  if (row) {
+    const clientType = row.client_type || 'web';
+    const user = {
+      id: row.id,
+      provider: row.provider,
+      provider_sub: row.provider_sub,
+      email: row.email,
+      name: row.name,
+      avatar_url: row.avatar_url,
+      created_at: row.created_at,
+    };
+    return { user, tokenHash, clientType };
+  }
   return null;
 }

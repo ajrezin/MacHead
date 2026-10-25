@@ -121,15 +121,22 @@ final class WebServer {
             let method = firstLineParts[0]
             let path = firstLineParts[1]
             
+            // Enforce Same-Origin check on POST requests to prevent cross-site CSRF
+            if method == "POST" && !self.verifySameOriginPost(headers: lines) {
+                let forbidden = "{\"error\":\"forbidden cross-origin request\"}".data(using: .utf8)!
+                self.sendResponse(statusCode: 403, statusText: "Forbidden", content: forbidden, contentType: "application/json", connection: connection)
+                return
+            }
+
             // Route "/login" and "/logout" without global auth block
             if path == "/login" {
                 if method == "GET" {
                     self.sendResponse(html: self.getLoginHTML(), connection: connection)
                 } else if method == "POST" {
-                    let enteredPassword = self.extractPassword(from: bodyPart)
+                    let enteredPassword = self.extractPassword(from: bodyPart) ?? ""
                     let correctPassword = UserDefaults.standard.string(forKey: "WebServerPassword") ?? ""
-                    
-                    if correctPassword.isEmpty || enteredPassword == correctPassword {
+
+                    if correctPassword.isEmpty || self.constantTimeEqual(enteredPassword, correctPassword) {
                         let cookieHeader = "Set-Cookie: session=\(self.sessionToken); Path=/; HttpOnly; SameSite=Strict"
                         self.sendRedirect(to: "/", extraHeaders: [cookieHeader], connection: connection)
                     } else {
@@ -174,18 +181,65 @@ final class WebServer {
         return extractParameter(named: "password", from: body)
     }
     
+    private func constantTimeEqual(_ a: String, _ b: String) -> Bool {
+        let aBytes = Array(a.utf8)
+        let bBytes = Array(b.utf8)
+        guard aBytes.count == bBytes.count else { return false }
+        var diff: UInt8 = 0
+        for i in 0..<aBytes.count {
+            diff |= aBytes[i] ^ bBytes[i]
+        }
+        return diff == 0
+    }
+
+    private func verifySameOriginPost(headers: [String]) -> Bool {
+        var hostHeader = ""
+        var originHeader = ""
+        for line in headers {
+            let lower = line.lowercased()
+            if lower.hasPrefix("host:") {
+                hostHeader = line.dropFirst(5).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            } else if lower.hasPrefix("origin:") {
+                originHeader = line.dropFirst(7).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            }
+        }
+        if originHeader.isEmpty {
+            return true
+        }
+        if originHeader == "null" {
+            return false
+        }
+        guard let url = URL(string: originHeader), let originHost = url.host?.lowercased() else {
+            return false
+        }
+        let originHostPort: String
+        if let port = url.port {
+            originHostPort = "\(originHost):\(port)"
+        } else {
+            originHostPort = originHost
+        }
+        return originHostPort == hostHeader || originHost == hostHeader
+    }
+
     private func verifyAuthorization(headers: [String]) -> Bool {
         return verifySession(headers: headers)
     }
-    
+
     private func verifySession(headers: [String]) -> Bool {
         let password = UserDefaults.standard.string(forKey: "WebServerPassword") ?? ""
         guard !password.isEmpty else { return true }
-        
+
         for line in headers {
             if line.lowercased().hasPrefix("cookie:") {
-                if line.contains("session=\(sessionToken)") {
-                    return true
+                let cookieVal = line.dropFirst(7)
+                for part in cookieVal.components(separatedBy: ";") {
+                    let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if trimmed.hasPrefix("session=") {
+                        let provided = String(trimmed.dropFirst("session=".count))
+                        if constantTimeEqual(provided, sessionToken) {
+                            return true
+                        }
+                    }
                 }
             }
         }
@@ -337,7 +391,9 @@ final class WebServer {
             "HTTP/1.1 \(statusCode) \(statusText)",
             "Content-Type: \(contentType)",
             "Content-Length: \(content.count)",
-            "Access-Control-Allow-Origin: *",
+            "X-Frame-Options: DENY",
+            "X-Content-Type-Options: nosniff",
+            "Cache-Control: no-store",
             "Connection: close"
         ]
         headersList.append(contentsOf: extraHeaders)
@@ -529,7 +585,7 @@ final class WebServer {
           "frpRunning": \(FrpService.shared.isRunning()),
           "cloudflareEnabled": \(UserDefaults.standard.bool(forKey: "cloudflareEnabled")),
           "cloudflareStatus": "\(CloudflareService.shared.currentStatus.displayText)",
-          "cloudflareToken": "\(UserDefaults.standard.string(forKey: "cloudflareToken") ?? "")",
+          "hasCloudflareToken": \(!(UserDefaults.standard.string(forKey: "cloudflareToken") ?? "").isEmpty),
           "sshEnabled": \(RemoteSharingService.shared.isSSHRunning),
           "vncEnabled": \(RemoteSharingService.shared.isVNCRunning),
           "smbEnabled": \(RemoteSharingService.shared.isSMBRunning),
@@ -728,18 +784,28 @@ final class WebServer {
         """
     }
     
+    private func escapeHTML(_ str: String) -> String {
+        return str
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+            .replacingOccurrences(of: "'", with: "&#39;")
+    }
+
     private func getLoginHTML(error: String? = nil) -> String {
+        let safeError = error.map { escapeHTML($0) }
         if let resourcePath = Bundle.main.path(forResource: "Login", ofType: "html"),
            var html = try? String(contentsOfFile: resourcePath, encoding: .utf8) {
-            if let error = error {
-                let errorDiv = "<div class=\"error-msg\">\(error)</div>"
+            if let safeError = safeError {
+                let errorDiv = "<div class=\"error-msg\">\(safeError)</div>"
                 html = html.replacingOccurrences(of: "<!-- ERROR_PLACEHOLDER -->", with: errorDiv)
             } else {
                 html = html.replacingOccurrences(of: "<!-- ERROR_PLACEHOLDER -->", with: "")
             }
             return html
         }
-        
+
         // Fallback fallback if resource loading fails
         return """
         <!DOCTYPE html>
@@ -758,7 +824,7 @@ final class WebServer {
         <body>
             <div class="card">
                 <h2>MacHead Console Login</h2>
-                \(error != nil ? "<div class=\"error\">\(error!)</div>" : "")
+                \(safeError != nil ? "<div class=\"error\">\(safeError!)</div>" : "")
                 <form method="POST" action="/login">
                     <label>Password</label>
                     <input type="password" name="password" autofocus required>
