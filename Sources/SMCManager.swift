@@ -89,14 +89,14 @@ public final class SMCManager: ObservableObject {
     private func openSMC() {
         let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSMC"))
         if service == 0 {
-            print("SMCManager: AppleSMC service not found")
+            fputs("SMCManager: AppleSMC service not found\n", stderr)
             return
         }
         defer { IOObjectRelease(service) }
-        
+
         let result = IOServiceOpen(service, mach_task_self_, 0, &connection)
         if result != kIOReturnSuccess {
-            print("SMCManager: Failed to open connection to AppleSMC (error \(result))")
+            fputs("SMCManager: Failed to open connection to AppleSMC (error \(result))\n", stderr)
             connection = 0
         }
     }
@@ -207,26 +207,33 @@ public final class SMCManager: ObservableObject {
         }
         
         if tempRead > 0 {
-            DispatchQueue.main.async {
+            if Thread.isMainThread {
                 self.currentTemperature = tempRead
+            } else {
+                DispatchQueue.main.async {
+                    self.currentTemperature = tempRead
+                }
             }
         }
-        
+
         // 2. 读取风扇转速
+        let resolvedFanSpeed: Int
         if !isFanless {
             if connection != 0, let speed = readFanSpeed(key: "F0Ac") {
-                DispatchQueue.main.async {
-                    self.fanSpeed = speed
-                }
+                resolvedFanSpeed = speed
             } else {
                 // 如果是物理有风扇设备但无法读取具体 RPM（如 Apple Silicon 权限限制），返回 -1 标识“系统控制中”
-                DispatchQueue.main.async {
-                    self.fanSpeed = -1
-                }
+                resolvedFanSpeed = -1
             }
         } else {
+            resolvedFanSpeed = 0
+        }
+
+        if Thread.isMainThread {
+            self.fanSpeed = resolvedFanSpeed
+        } else {
             DispatchQueue.main.async {
-                self.fanSpeed = 0
+                self.fanSpeed = resolvedFanSpeed
             }
         }
     }

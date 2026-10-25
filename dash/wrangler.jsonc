@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "machead-dash",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "machead-telemetry-db",
+      "database_id": "b5c4ddd6-70a7-412e-92ec-3893892b598d"
+    }
+  ]
+}

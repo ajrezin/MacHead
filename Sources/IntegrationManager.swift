@@ -18,8 +18,9 @@ public final class IntegrationManager: ObservableObject {
         FrpService.shared.start()
         CloudflareService.shared.start()
         DevTunnelService.shared.start()
+        TailcatService.shared.start()
     }
-    
+
     public func stopAllServices() {
         print("IntegrationManager: Stopping all integrations...")
         NezhaAgentService.shared.stop()
@@ -28,26 +29,15 @@ public final class IntegrationManager: ObservableObject {
         FrpService.shared.stop()
         CloudflareService.shared.stop()
         DevTunnelService.shared.stop()
+        TailcatService.shared.stop()
     }
-    
+
     public func reloadServices() {
         print("IntegrationManager: Config changed, reloading integrations...")
         DispatchQueue.global(qos: .userInitiated).async {
-            NezhaAgentService.shared.stop()
-            ServerStatusService.shared.stop()
-            UptimeKumaService.shared.stop()
-            FrpService.shared.stop()
-            CloudflareService.shared.stop()
-            DevTunnelService.shared.stop()
-            
+            self.stopAllServices()
             Thread.sleep(forTimeInterval: 0.2)
-            
-            NezhaAgentService.shared.start()
-            ServerStatusService.shared.start()
-            UptimeKumaService.shared.start()
-            FrpService.shared.start()
-            CloudflareService.shared.start()
-            DevTunnelService.shared.start()
+            self.startAllServices()
         }
     }
     

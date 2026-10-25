@@ -86,6 +86,10 @@ jobs:
             "${TEMP_DIR}/cfd_arm64/cloudflared" \
             -output Resources/cloudflared
 
+          echo "Building Universal tailcat binary..."
+          chmod +x ./Scripts/build-tailcat.sh
+          ./Scripts/build-tailcat.sh --native-only
+
           # devtunnel 为微软专有 EULA 组件，禁止捆绑再分发，不在此下载；
           # 用户可在 App 内通过一键安装从微软官方获取
 

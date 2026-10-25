@@ -1,7 +1,7 @@
 import Cocoa
 import SwiftUI
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover?
     private let controller = HeadlessModeController.shared
@@ -60,7 +60,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             "telegramChatId": "",
             "overheatAlertEnabled": false,
             "overheatThreshold": 85.0,
-            "telemetryEnabled": true
+            "telemetryEnabled": true,
+            "tailcatEnabled": false,
+            "tailcatCodeMode": "ephemeral",
+            "tailcatRequirePassword": false,
+            "tailcatAccessPassword": "",
+            "tailcatFixedCode": "",
+            "tailcatBinaryPath": ""
         ])
         
         // Generate random default WebServerPassword if not present
@@ -211,7 +217,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         preferencesItem.target = self
         menu.addItem(preferencesItem)
-        
+
+        let updateItem = NSMenuItem(
+            title: "检查更新...",
+            action: #selector(checkForUpdatesMenuAction),
+            keyEquivalent: ""
+        )
+        updateItem.target = self
+        menu.addItem(updateItem)
+
         menu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(
@@ -234,6 +248,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @objc private func checkForUpdatesMenuAction() {
+        UpdateManager.shared.checkForUpdates(silent: false)
+    }
+
+    private func ensureAppMenuItems() {
+        guard let mainMenu = NSApp.mainMenu,
+              let appMenu = mainMenu.items.first?.submenu else { return }
+
+        // Ensure "偏好设置..." and "检查更新..." exist in the top-left MacHead application menu
+        let hasCheckUpdate = appMenu.items.contains {
+            $0.action == #selector(checkForUpdatesMenuAction) || $0.title.contains("检查更新") || $0.title.contains("Check for Updates")
+        }
+        if !hasCheckUpdate {
+            let insertIndex = min(2, appMenu.items.count)
+            let updateItem = NSMenuItem(
+                title: "检查更新...",
+                action: #selector(checkForUpdatesMenuAction),
+                keyEquivalent: ""
+            )
+            updateItem.target = self
+            appMenu.insertItem(updateItem, at: insertIndex)
+        }
+    }
+
     @objc func openPreferences() {
         if preferencesWindow == nil {
             let view = PreferencesView()
@@ -252,12 +290,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.center()
             window.isReleasedWhenClosed = false
             window.setFrameAutosaveName("MacHeadPreferencesWindow")
+            window.delegate = self
             self.preferencesWindow = window
         }
-        
-        // Bring window to front
+
+        // Switch to .regular while Preferences window is open so macOS menu bar shows "MacHead -> 检查更新..."
+        NSApp.setActivationPolicy(.regular)
+        ensureAppMenuItems()
         NSApp.activate(ignoringOtherApps: true)
         preferencesWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if let closedWindow = notification.object as? NSWindow, closedWindow == preferencesWindow {
+            DispatchQueue.main.async {
+                NSApp.setActivationPolicy(.accessory)
+            }
+        }
     }
     
     @objc private func handleStateChanged() {

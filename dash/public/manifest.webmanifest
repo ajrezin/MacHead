@@ -1,0 +1,57 @@
+{
+  "id": "/",
+  "name": "MacHead Dash — 云端无头远控台",
+  "short_name": "MacHead",
+  "description": "端到端加密的 Mac 远程多标签终端、Web 文件管理器与无头模式实时控制台",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#14120b",
+  "theme_color": "#14120b",
+  "categories": ["developer", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "我的 Mac 设备",
+      "short_name": "设备列表",
+      "description": "查看并直连已绑定的 MacHead 设备",
+      "url": "/?tab=devices",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "健全码连接",
+      "short_name": "健全码",
+      "description": "使用 8 位健全码临时连接远程 Mac",
+      "url": "/?tab=pair",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
