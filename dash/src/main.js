@@ -3,6 +3,7 @@ import '@xterm/xterm/css/xterm.css';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
+import { getLang, setLang, t, applyStaticI18n } from './i18n.js';
 
 const STORAGE_TOKEN_KEY = 'machead_dash_session_token';
 
@@ -127,12 +128,13 @@ let currentDevices = [];
 let pollTimer = null;
 let wasmReadyPromise = null;
 let wasmShowProgress = false;
-let wasmStageLabel = '正在准备终端环境...';
+let wasmStageLabel = t('progress.preparing_wasm');
 let wasmStagePct = 35;
 
 // Active Device Workspace State
 let lastConnectedAddr = null;
 let lastConnectedHost = 'MacBook Pro';
+let lastTransportMode = '';
 let currentSubpane = 'term'; // 'term' | 'files' | 'status'
 
 // Multi-Tab Terminal State
@@ -144,6 +146,7 @@ let termTabSeq = 0;
 let currentFsPath = '';
 let currentFsParent = '';
 let currentEditingPath = '';
+let lastFsListingData = null;
 
 // System Status Polling State
 let statusPollTimer = null;
@@ -161,9 +164,83 @@ const LOCAL_RPC_ENDPOINT = 'http://127.0.0.1:41891/webrtc/rpc';
 const urlParams = new URLSearchParams(window.location.search);
 let pendingAppAuthRequestId = urlParams.get('app_auth') || '';
 let pendingAppCodeChallenge = urlParams.get('code_challenge') || '';
-let pendingAppDeviceName = urlParams.get('device_name') || 'MacHead 客户端';
+const rawDeviceNameParam = urlParams.get('device_name') || '';
+let pendingAppDeviceName = rawDeviceNameParam || t('handoff.default_device');
 const requestedProvider = urlParams.get('provider') || '';
 const initialAuthError = urlParams.get('auth_error') || '';
+
+function formatTransportBadge(mode) {
+  if (mode === 'loopback-direct') return t('ws.transport_loopback');
+  if (mode === 'lan-direct') return t('ws.transport_lan');
+  if (mode === 'wan-p2p' || mode === 'webrtc-p2p') return t('ws.transport_p2p');
+  if (mode) return t('ws.transport_e2ee');
+  return 'P2P';
+}
+
+const QUICK_PATH_EN_MAP = {
+  主目录: 'Home',
+  桌面: 'Desktop',
+  下载: 'Downloads',
+  文稿: 'Documents',
+  应用程序: 'Applications',
+  根目录: 'Root /',
+  '根目录 /': 'Root /',
+};
+
+function localizeQuickPathName(name) {
+  const raw = String(name || '');
+  if (getLang() === 'en' && QUICK_PATH_EN_MAP[raw]) {
+    return QUICK_PATH_EN_MAP[raw];
+  }
+  return raw;
+}
+
+function switchLanguage(lang) {
+  setLang(lang);
+  if (!rawDeviceNameParam) {
+    pendingAppDeviceName = t('handoff.default_device');
+    if (authClientDeviceName && pendingAppAuthRequestId) {
+      authClientDeviceName.textContent = pendingAppDeviceName;
+    }
+    if (handoffDeviceLabel) {
+      handoffDeviceLabel.textContent = pendingAppDeviceName;
+    }
+  }
+
+  applyStaticI18n();
+
+  const isTerminalActive = document.getElementById('pane-terminal')?.classList.contains('is-active');
+  if (isTerminalActive) {
+    crumbCurrentTitle.textContent = lastConnectedHost
+      ? `${t('crumb.my_devices')} / ${lastConnectedHost}`
+      : t('crumb.workspace');
+  } else {
+    crumbCurrentTitle.textContent = t('crumb.my_devices');
+  }
+
+  if (lastTransportMode && wsTransportBadge) {
+    wsTransportBadge.textContent = formatTransportBadge(lastTransportMode);
+  }
+
+  renderDevices(currentDevices);
+  renderTerminalTabsBar();
+
+  if (lastFsListingData) {
+    renderFsDirectoryData(lastFsListingData);
+  }
+  if (currentSysStatus) {
+    renderSystemStatus(currentSysStatus);
+  }
+}
+
+document.querySelectorAll('[data-lang-btn]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const targetLang = btn.getAttribute('data-lang-btn');
+    if (targetLang) {
+      switchLanguage(targetLang);
+    }
+  });
+});
 
 function getSessionToken() {
   return localStorage.getItem(STORAGE_TOKEN_KEY) || '';
@@ -229,9 +306,9 @@ function formatUptime(sec) {
   const days = Math.floor(s / 86400);
   const hours = Math.floor((s % 86400) / 3600);
   const mins = Math.floor((s % 3600) / 60);
-  if (days > 0) return `${days} 天 ${hours} 小时`;
-  if (hours > 0) return `${hours} 小时 ${mins} 分钟`;
-  return `${Math.max(1, mins)} 分钟`;
+  if (days > 0) return t('uptime.days_hours', { d: days, h: hours });
+  if (hours > 0) return t('uptime.hours_mins', { h: hours, m: mins });
+  return t('uptime.mins', { m: Math.max(1, mins) });
 }
 
 function resolveUserAvatar(user) {
@@ -285,9 +362,11 @@ function getActiveTermTab() {
  */
 function switchConsoleTab(tabKey, hostLabel = '') {
   if (tabKey === 'terminal') {
-    crumbCurrentTitle.textContent = hostLabel ? `我的设备 / ${hostLabel}` : '设备工作区';
+    crumbCurrentTitle.textContent = hostLabel
+      ? `${t('crumb.my_devices')} / ${hostLabel}`
+      : t('crumb.workspace');
   } else {
-    crumbCurrentTitle.textContent = '我的设备';
+    crumbCurrentTitle.textContent = t('crumb.my_devices');
     stopSystemStatusPolling();
   }
 
@@ -356,7 +435,7 @@ function startOAuthLogin(provider, triggerBtn = null) {
   if (triggerBtn) {
     const labelEl = triggerBtn.querySelector('.sso-btn-label');
     if (labelEl) {
-      labelEl.textContent = `正在跳转至 ${PROVIDER_LABELS[p]} 授权...`;
+      labelEl.textContent = t('auth.redirecting_oauth', { provider: PROVIDER_LABELS[p] });
     }
     triggerBtn.disabled = true;
   }
@@ -394,7 +473,8 @@ function showHandoffStep() {
   stepHandoff.style.display = 'block';
 
   handoffUserAvatar.src = resolveUserAvatar(currentUser);
-  handoffAccountLabel.textContent = currentUser?.name || currentUser?.email || '当前账号';
+  handoffAccountLabel.textContent =
+    currentUser?.name || currentUser?.email || t('handoff.current_account');
   handoffDeviceLabel.textContent = pendingAppDeviceName;
 
   scheduleTailcatWasmPrewarm();
@@ -403,7 +483,7 @@ function showHandoffStep() {
 async function performAppHandoffApproval() {
   if (!pendingAppAuthRequestId || !getSessionToken()) return;
   btnConfirmHandoff.disabled = true;
-  btnConfirmHandoff.textContent = '正在授权并绑定...';
+  btnConfirmHandoff.textContent = t('handoff.authorizing_btn');
 
   try {
     const resp = await fetch('/api/auth', {
@@ -433,20 +513,20 @@ async function performAppHandoffApproval() {
       history.replaceState(null, '', cleanUrl.pathname + cleanUrl.search);
 
       await enterConsoleWorkspace();
-      showToast(`✅ 已绑定「<strong>${escapeHtml(boundName)}</strong>」`);
+      showToast(t('handoff.bound_toast', { name: escapeHtml(boundName) }));
     } else {
       if (resp.status === 401) {
         setSessionToken('');
         currentUser = null;
         showAuthView();
       }
-      alert(data.error || '授权失败，请重新登录或重试');
+      alert(data.error || t('handoff.auth_failed'));
     }
   } catch (err) {
-    alert(err.message || '授权失败');
+    alert(err.message || t('handoff.auth_failed'));
   } finally {
     btnConfirmHandoff.disabled = false;
-    btnConfirmHandoff.textContent = '确认授权并绑定';
+    btnConfirmHandoff.textContent = t('handoff.confirm_btn');
   }
 }
 
@@ -464,11 +544,11 @@ function updateSidebarUser(user) {
 
 function formatRelativeTime(unixSec) {
   const diff = Math.max(0, Math.floor(Date.now() / 1000) - Number(unixSec || 0));
-  if (diff < 15) return '刚刚活跃';
-  if (diff < 60) return `${diff} 秒前`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
-  return `${Math.floor(diff / 86400)} 天前`;
+  if (diff < 15) return t('time.just_now');
+  if (diff < 60) return t('time.sec_ago', { n: diff });
+  if (diff < 3600) return t('time.min_ago', { n: Math.floor(diff / 60) });
+  if (diff < 86400) return t('time.hour_ago', { n: Math.floor(diff / 3600) });
+  return t('time.day_ago', { n: Math.floor(diff / 86400) });
 }
 
 function renderDevices(devices) {
@@ -500,11 +580,11 @@ function renderDevices(devices) {
   devicesCardsGrid.innerHTML = currentDevices
     .map((dev) => {
       const statusCls = dev.isOnline ? 'online' : 'offline';
-      const statusText = dev.isOnline ? '● 在线' : '○ 离线';
+      const statusText = dev.isOnline ? t('devices.status_online') : t('devices.status_offline');
       const cleanArch = String(dev.modelArch || 'Apple Silicon').replace(/\s*\([^)]*\)/g, '');
       const headlessBadge = dev.isHeadless
-        ? '<span class="device-tag headless">无头模式</span>'
-        : '<span class="device-tag">常规模式</span>';
+        ? `<span class="device-tag headless">${escapeHtml(t('devices.mode_headless'))}</span>`
+        : `<span class="device-tag">${escapeHtml(t('devices.mode_normal'))}</span>`;
 
       return `
         <tr class="device-row">
@@ -518,30 +598,30 @@ function renderDevices(devices) {
             </div>
           </td>
           <td class="cell-status">
-            <span class="status-badge ${statusCls}">${statusText}</span>
+            <span class="status-badge ${statusCls}">${escapeHtml(statusText)}</span>
           </td>
           <td class="cell-mode">
             ${headlessBadge}
           </td>
           <td class="cell-seen">
-            <span class="device-seen-text">${formatRelativeTime(dev.lastSeenAt)}</span>
+            <span class="device-seen-text">${escapeHtml(formatRelativeTime(dev.lastSeenAt))}</span>
           </td>
           <td class="cell-actions">
             <div class="device-row-actions">
               <button type="button" class="btn-connect-ssh" data-connect-id="${escapeHtml(dev.deviceId)}" data-open-subpane="term">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><polyline points="7 9.5 10 12.5 7 15.5"/><line x1="12.5" y1="15.5" x2="17" y2="15.5"/></svg>
-                <span>终端</span>
+                <span>${escapeHtml(t('devices.btn_term'))}</span>
               </button>
               <button type="button" class="btn-row-secondary" data-connect-id="${escapeHtml(dev.deviceId)}" data-open-subpane="files">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5l2 2.5h9a2 2 0 0 1 2 2z"/></svg>
-                <span>文件</span>
+                <span>${escapeHtml(t('devices.btn_files'))}</span>
               </button>
               <button type="button" class="btn-row-secondary" data-connect-id="${escapeHtml(dev.deviceId)}" data-open-subpane="status">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><polyline points="6 12 9 12 10.8 8.5 13.2 15.5 15 12 18 12"/></svg>
-                <span>状态与远控</span>
+                <span>${escapeHtml(t('devices.btn_status'))}</span>
               </button>
               <button type="button" class="btn-remove-device" data-remove-id="${escapeHtml(dev.deviceId)}">
-                解绑
+                ${escapeHtml(t('devices.btn_unbind'))}
               </button>
             </div>
           </td>
@@ -723,7 +803,7 @@ async function getDecompressedWasmResponse() {
 
   const resp = await fetch(`/terminal/tailcat.wasm.gz?v=${WASM_VERSION}`, { cache: 'force-cache' });
   if (!resp.ok) {
-    throw new Error(`加载终端组件失败 (HTTP ${resp.status})`);
+    throw new Error(`HTTP ${resp.status}`);
   }
 
   let wasmStream = resp.body;
@@ -762,7 +842,7 @@ async function ensureTailcatWasmLoaded({ silent = false } = {}) {
   if (wasmReadyPromise) return wasmReadyPromise;
 
   wasmReadyPromise = (async () => {
-    updateWasmProgress('正在准备终端环境...', 35);
+    updateWasmProgress(t('progress.preparing_wasm'), 35);
     if (typeof globalThis.Go !== 'function') {
       await new Promise((resolve, reject) => {
         const existing = document.querySelector('script[src="/terminal/wasm_exec.js"]');
@@ -773,12 +853,12 @@ async function ensureTailcatWasmLoaded({ silent = false } = {}) {
         const script = document.createElement('script');
         script.src = '/terminal/wasm_exec.js';
         script.onload = resolve;
-        script.onerror = () => reject(new Error('无法加载终端组件'));
+        script.onerror = () => reject(new Error('Failed to load wasm_exec.js'));
         document.head.appendChild(script);
       });
     }
 
-    updateWasmProgress('正在连接远程设备...', 65);
+    updateWasmProgress(t('progress.connecting_device'), 65);
     const readyCallback = new Promise((resolve) => {
       globalThis.onTailcatReady = resolve;
     });
@@ -984,7 +1064,7 @@ async function attemptHappyEyeballsTrack(addr, mode, abortSignal) {
         throw new Error('aborted');
       }
       if (typeof globalThis.tailcatSignalWebRTC !== 'function') {
-        throw new Error('Wasm WebRTC 信令未就绪');
+        throw new Error('Wasm WebRTC signaling not ready');
       }
       ans = await globalThis.tailcatSignalWebRTC({
         addr,
@@ -995,7 +1075,7 @@ async function attemptHappyEyeballsTrack(addr, mode, abortSignal) {
     }
 
     if (!ans || !ans.sdp) {
-      throw new Error('未获取到 WebRTC Answer');
+      throw new Error('Missing WebRTC Answer');
     }
 
     await pc.setRemoteDescription({
@@ -1032,11 +1112,11 @@ function getOrCreateWebRTCPeer(addr, { ignoreCooldown = false } = {}) {
   }
 
   if (typeof window.RTCPeerConnection !== 'function') {
-    return Promise.reject(new Error('当前浏览器不支持 WebRTC'));
+    return Promise.reject(new Error('WebRTC not supported'));
   }
 
   if (!ignoreCooldown && (rtcFailureCooldownUntil.get(addr) || 0) > Date.now()) {
-    return Promise.reject(new Error('WebRTC 冷却中，优先走直连或中继'));
+    return Promise.reject(new Error('WebRTC cooldown'));
   }
 
   const entry = { pc: null, mode: '', readyPromise: null, rpcChannelPromise: null };
@@ -1204,7 +1284,7 @@ async function getOrCreateWebRTCRPCBridge(addr) {
     dc.onclose = () => {
       for (const [, entry] of pending) {
         clearTimeout(entry.timer);
-        entry.reject(new Error('RPC 通道已关闭'));
+        entry.reject(new Error('RPC channel closed'));
       }
       pending.clear();
       incomingChunks.clear();
@@ -1219,7 +1299,7 @@ async function getOrCreateWebRTCRPCBridge(addr) {
           const timer = setTimeout(() => {
             pending.delete(id);
             incomingChunks.delete(id);
-            reject(new Error('RPC 请求超时'));
+            reject(new Error('RPC request timeout'));
           }, timeoutMs);
           pending.set(id, { resolve, reject, timer });
 
@@ -1268,7 +1348,7 @@ async function getOrCreateWebRTCRPCBridge(addr) {
 }
 
 async function callDeviceRPC(addr, method, params = {}, isPasswordRetry = false) {
-  if (!addr) throw new Error('未选择设备');
+  if (!addr) throw new Error('No device selected');
   const id = `rpc_${Date.now()}_${++rpcReqSeq}`;
   const passHash = devicePassHashes.get(addr) || '';
   const reqObj = { id, addr, passHash, method, params };
@@ -1311,7 +1391,7 @@ async function callDeviceRPC(addr, method, params = {}, isPasswordRetry = false)
   if (!resp) {
     await ensureTailcatWasmLoaded({ silent: true });
     if (typeof globalThis.tailcatRPC !== 'function') {
-      throw new Error('远程 RPC 通道尚未就绪');
+      throw new Error('Remote RPC channel not ready');
     }
     const rawResp = await globalThis.tailcatRPC({
       addr,
@@ -1321,9 +1401,9 @@ async function callDeviceRPC(addr, method, params = {}, isPasswordRetry = false)
   }
 
   if (!resp.ok) {
-    const errMsg = String(resp.error || '远程操作失败');
+    const errMsg = String(resp.error || 'Remote operation failed');
     if (!isPasswordRetry && errMsg.startsWith('NEED_PASSWORD:')) {
-      const entered = window.prompt('🔒 该 Mac 已开启安全访问口令保护，请输入访问口令：');
+      const entered = window.prompt(t('rpc.password_prompt'));
       if (entered !== null && entered.trim() !== '') {
         const hashed = await sha256HexString(entered.trim());
         devicePassHashes.set(addr, hashed);
@@ -1360,7 +1440,7 @@ async function connectViaWebRTCDataChannel({ addr, cols, rows, term, tabId, cwd,
       dc.close();
     } catch {}
     if (typeof onClose === 'function') {
-      onClose(reason || '连接已断开');
+      onClose(reason || '');
     }
   };
 
@@ -1369,7 +1449,7 @@ async function connectViaWebRTCDataChannel({ addr, cols, rows, term, tabId, cwd,
       try {
         dc.close();
       } catch {}
-      reject(new Error('打开 P2P 数据通道超时'));
+      reject(new Error('P2P DataChannel timeout'));
     }, 3500);
 
     dc.onopen = () => {
@@ -1381,7 +1461,7 @@ async function connectViaWebRTCDataChannel({ addr, cols, rows, term, tabId, cwd,
       try {
         dc.close();
       } catch {}
-      reject(new Error('P2P 数据通道异常'));
+      reject(new Error('P2P DataChannel error'));
     };
   });
 
@@ -1390,7 +1470,7 @@ async function connectViaWebRTCDataChannel({ addr, cols, rows, term, tabId, cwd,
       try {
         const msg = JSON.parse(ev.data);
         if (msg.type === 'exit') {
-          finishClose(msg.reason || '终端会话已正常退出');
+          finishClose(msg.reason || '');
         }
       } catch {}
       return;
@@ -1403,7 +1483,7 @@ async function connectViaWebRTCDataChannel({ addr, cols, rows, term, tabId, cwd,
   };
 
   dc.onclose = () => {
-    finishClose('终端会话已断开');
+    finishClose('');
   };
 
   return {
@@ -1425,7 +1505,7 @@ async function connectViaWebRTCDataChannel({ addr, cols, rows, term, tabId, cwd,
       }
     },
     close() {
-      finishClose('用户主动断开连接');
+      finishClose('');
     },
   };
 }
@@ -1471,6 +1551,7 @@ function createXtermInstance(mountNode) {
 
 function renderTerminalTabsBar() {
   wsTermTabCount.textContent = String(terminalTabs.size);
+  const closeTitle = escapeHtml(t('term.close_tab_title'));
   const itemsHtml = [];
   for (const [id, tab] of terminalTabs.entries()) {
     const activeCls = id === activeTermTabId ? 'is-active' : '';
@@ -1478,7 +1559,7 @@ function renderTerminalTabsBar() {
       <div class="term-tab-item ${activeCls}" data-tab-id="${escapeHtml(id)}">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex-shrink:0;"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
         <span>${escapeHtml(tab.title)}</span>
-        <button type="button" class="term-tab-close" data-close-tab="${escapeHtml(id)}" title="关闭此标签页">×</button>
+        <button type="button" class="term-tab-close" data-close-tab="${escapeHtml(id)}" title="${closeTitle}">×</button>
       </div>
     `);
   }
@@ -1622,9 +1703,9 @@ async function createAndConnectTerminalTab({ cwd = '', title = '' } = {}) {
   const onData = (chunk) => {
     term.write(chunk);
   };
-  const onClose = (reason) => {
+  const onClose = () => {
     tabEntry.session = null;
-    term.writeln(`\r\n\x1b[33m${reason || '连接已断开'}。可点击「重连当前页」或新建标签页。\x1b[0m`);
+    term.writeln(`\r\n\x1b[33m${t('term.disconnected_hint')}\x1b[0m`);
   };
 
   try {
@@ -1666,21 +1747,15 @@ async function createAndConnectTerminalTab({ cwd = '', title = '' } = {}) {
       return;
     }
     tabEntry.session = session;
-    wsTransportBadge.textContent =
-      session.transport === 'loopback-direct'
-        ? '本机直连'
-        : session.transport === 'lan-direct'
-          ? '局域网直连'
-          : session.transport === 'wan-p2p'
-            ? 'P2P 直连'
-            : 'E2EE 隧道';
+    lastTransportMode = session.transport || 'e2ee';
+    wsTransportBadge.textContent = formatTransportBadge(lastTransportMode);
 
     fit.fit();
     await session.resize(term.cols, term.rows).catch(() => {});
     term.focus();
   } catch (err) {
     setProgress('', 0);
-    term.writeln(`\r\n\x1b[31m连接失败: ${err.message || String(err)}\x1b[0m`);
+    term.writeln(`\r\n\x1b[31m${t('term.connect_failed', { err: err.message || String(err) })}\x1b[0m`);
   }
 }
 
@@ -1694,6 +1769,7 @@ async function openDeviceWorkspace(addr, hostTitle, initialSubpane = 'term') {
   if (isDifferentDevice) {
     closeAllTerminalTabs();
     currentFsPath = '';
+    lastFsListingData = null;
     currentSysStatus = null;
   }
 
@@ -1762,17 +1838,17 @@ btnTermPasteRemote.addEventListener('click', async () => {
     const res = await callDeviceRPC(lastConnectedAddr, 'sys_clipboard_get', {});
     const text = res?.text || '';
     if (!text) {
-      showToast('📋 远端 Mac 剪贴板当前为空');
+      showToast(t('term.clipboard_empty'));
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
-      showToast(`✅ 已读取远端 Mac 剪贴板并复制到本地 (${text.length} 字符)`);
+      showToast(t('term.clipboard_read_ok', { len: text.length }));
     } catch {
-      window.prompt('远端 Mac 剪贴板内容 (可按 ⌘C 复制)：', text);
+      window.prompt(t('term.clipboard_read_prompt'), text);
     }
   } catch (err) {
-    showError(`读取远端剪贴板失败: ${err.message}`);
+    showError(t('term.clipboard_read_err', { err: err.message }));
   }
 });
 
@@ -1783,14 +1859,14 @@ btnTermCopyRemote.addEventListener('click', async () => {
     text = await navigator.clipboard.readText();
   } catch {}
   if (!text) {
-    text = window.prompt('请输入要写入远端 Mac 剪贴板的文本：', '') || '';
+    text = window.prompt(t('term.clipboard_write_prompt'), '') || '';
   }
   if (!text) return;
   try {
     await callDeviceRPC(lastConnectedAddr, 'sys_clipboard_set', { text });
-    showToast(`✅ 已写入远端 Mac 剪贴板 (${text.length} 字符)`);
+    showToast(t('term.clipboard_write_ok', { len: text.length }));
   } catch (err) {
-    showError(`写入远端剪贴板失败: ${err.message}`);
+    showError(t('term.clipboard_write_err', { err: err.message }));
   }
 });
 
@@ -1846,6 +1922,98 @@ function renderFsBreadcrumbs(fullPath) {
   fsBreadcrumbs.innerHTML = crumbs.join('');
 }
 
+function renderFsDirectoryData(data) {
+  if (!data) return;
+  lastFsListingData = data;
+  currentFsPath = data.path || '/';
+  currentFsParent = data.parentPath || '/';
+  inputFsPath.value = currentFsPath;
+  renderFsBreadcrumbs(currentFsPath);
+
+  // Quick path pills
+  const quickPaths = data.quickPaths || [];
+  fsQuickpathsList.innerHTML = quickPaths
+    .map((qp) => {
+      const activeCls = qp.path === currentFsPath ? 'is-active' : '';
+      return `<button type="button" class="fs-quick-pill ${activeCls}" data-quick-path="${escapeHtml(qp.path)}">${escapeHtml(localizeQuickPathName(qp.name))}</button>`;
+    })
+    .join('');
+
+  const items = data.items || [];
+  if (items.length === 0) {
+    fsTableBody.innerHTML = `<tr><td colspan="4" class="fs-empty-cell">${escapeHtml(t('fs.empty_dir'))}</td></tr>`;
+    return;
+  }
+
+  const svgFolder = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+  const svgSymlink = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+  const svgFile = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+
+  const dateLocale = getLang() === 'en' ? 'en-US' : 'zh-CN';
+  const lblOpen = escapeHtml(t('fs.btn_open'));
+  const lblTerm = escapeHtml(t('fs.btn_term'));
+  const lblTermTitle = escapeHtml(t('fs.btn_term_title'));
+  const lblEdit = escapeHtml(t('fs.btn_edit'));
+  const lblDownload = escapeHtml(t('fs.btn_download'));
+  const lblRename = escapeHtml(t('fs.btn_rename'));
+  const lblDelete = escapeHtml(t('fs.btn_delete'));
+
+  fsTableBody.innerHTML = items
+    .map((item) => {
+      const icon = item.isDir ? svgFolder : item.isSymlink ? svgSymlink : svgFile;
+      const sizeLabel = item.isDir ? '--' : formatBytes(item.size);
+      const timeStr = item.modTime
+        ? new Date(item.modTime * 1000).toLocaleString(dateLocale, {
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          })
+        : '--';
+
+      const actionBtns = item.isDir
+        ? `
+          <button type="button" class="fs-mini-btn" data-fs-open-dir="${escapeHtml(item.path)}">${lblOpen}</button>
+          <button type="button" class="fs-mini-btn" data-fs-term-dir="${escapeHtml(item.path)}" title="${lblTermTitle}">${lblTerm}</button>
+          <button type="button" class="fs-mini-btn" data-fs-rename="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">${lblRename}</button>
+          <button type="button" class="fs-mini-btn danger" data-fs-delete="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">${lblDelete}</button>
+        `
+        : `
+          <button type="button" class="fs-mini-btn" data-fs-edit="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">${lblEdit}</button>
+          <button type="button" class="fs-mini-btn" data-fs-download="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">${lblDownload}</button>
+          <button type="button" class="fs-mini-btn" data-fs-rename="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">${lblRename}</button>
+          <button type="button" class="fs-mini-btn danger" data-fs-delete="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">${lblDelete}</button>
+        `;
+
+      const permTitle = escapeHtml(t('fs.perm_title', { mode: item.mode || '' }));
+
+      return `
+        <tr class="device-row">
+          <td>
+            <button
+              type="button"
+              class="fs-entry-link"
+              title="${escapeHtml(item.name)} (${escapeHtml(item.mode || '')})"
+              data-fs-primary="${escapeHtml(item.path)}"
+              data-fs-isdir="${item.isDir ? '1' : '0'}"
+              data-fs-name="${escapeHtml(item.name)}"
+            >
+              <span class="fs-entry-icon">${icon}</span>
+              <span class="fs-entry-name">${escapeHtml(item.name)}</span>
+            </button>
+          </td>
+          <td class="fs-mono-cell">${escapeHtml(sizeLabel)}</td>
+          <td class="fs-mono-cell" title="${permTitle}">${escapeHtml(timeStr)}</td>
+          <td class="cell-actions">
+            <div class="device-row-actions">${actionBtns}</div>
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+}
+
 async function loadFsDirectory(targetPath = '') {
   if (!lastConnectedAddr) return;
   showError('');
@@ -1854,84 +2022,9 @@ async function loadFsDirectory(targetPath = '') {
       path: targetPath,
       showHidden: Boolean(chkFsHidden.checked),
     });
-
-    currentFsPath = data.path || '/';
-    currentFsParent = data.parentPath || '/';
-    inputFsPath.value = currentFsPath;
-    renderFsBreadcrumbs(currentFsPath);
-
-    // Quick path pills
-    const quickPaths = data.quickPaths || [];
-    fsQuickpathsList.innerHTML = quickPaths
-      .map((qp) => {
-        const activeCls = qp.path === currentFsPath ? 'is-active' : '';
-        return `<button type="button" class="fs-quick-pill ${activeCls}" data-quick-path="${escapeHtml(qp.path)}">${escapeHtml(qp.name)}</button>`;
-      })
-      .join('');
-
-    const items = data.items || [];
-    if (items.length === 0) {
-      fsTableBody.innerHTML = `<tr><td colspan="4" class="fs-empty-cell">此文件夹为空（可直接拖拽文件到此处上传）</td></tr>`;
-      return;
-    }
-
-    const svgFolder = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
-    const svgSymlink = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
-    const svgFile = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
-
-    fsTableBody.innerHTML = items
-      .map((item) => {
-        const icon = item.isDir ? svgFolder : item.isSymlink ? svgSymlink : svgFile;
-        const sizeLabel = item.isDir ? '--' : formatBytes(item.size);
-        const timeStr = item.modTime
-          ? new Date(item.modTime * 1000).toLocaleString('zh-CN', {
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : '--';
-
-        const actionBtns = item.isDir
-          ? `
-            <button type="button" class="fs-mini-btn" data-fs-open-dir="${escapeHtml(item.path)}">打开</button>
-            <button type="button" class="fs-mini-btn" data-fs-term-dir="${escapeHtml(item.path)}" title="在此目录新建终端">终端</button>
-            <button type="button" class="fs-mini-btn" data-fs-rename="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">重命名</button>
-            <button type="button" class="fs-mini-btn danger" data-fs-delete="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">删除</button>
-          `
-          : `
-            <button type="button" class="fs-mini-btn" data-fs-edit="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">编辑</button>
-            <button type="button" class="fs-mini-btn" data-fs-download="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">下载</button>
-            <button type="button" class="fs-mini-btn" data-fs-rename="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">重命名</button>
-            <button type="button" class="fs-mini-btn danger" data-fs-delete="${escapeHtml(item.path)}" data-fs-name="${escapeHtml(item.name)}">删除</button>
-          `;
-
-        return `
-          <tr class="device-row">
-            <td>
-              <button
-                type="button"
-                class="fs-entry-link"
-                title="${escapeHtml(item.name)} (${escapeHtml(item.mode || '')})"
-                data-fs-primary="${escapeHtml(item.path)}"
-                data-fs-isdir="${item.isDir ? '1' : '0'}"
-                data-fs-name="${escapeHtml(item.name)}"
-              >
-                <span class="fs-entry-icon">${icon}</span>
-                <span class="fs-entry-name">${escapeHtml(item.name)}</span>
-              </button>
-            </td>
-            <td class="fs-mono-cell">${escapeHtml(sizeLabel)}</td>
-            <td class="fs-mono-cell" title="权限: ${escapeHtml(item.mode || '')}">${escapeHtml(timeStr)}</td>
-            <td class="cell-actions">
-              <div class="device-row-actions">${actionBtns}</div>
-            </td>
-          </tr>
-        `;
-      })
-      .join('');
+    renderFsDirectoryData(data);
   } catch (err) {
-    showError(`读取目录失败: ${err.message}`);
+    showError(t('fs.load_err', { err: err.message }));
   }
 }
 
@@ -2031,7 +2124,8 @@ async function openFileInEditor(filePath, fileName) {
     if (IMAGE_EXT_MIMES[ext] && data.dataBase64) {
       currentEditingPath = data.path || filePath;
       editorFileName.textContent = currentEditingPath;
-      editorFileMeta.textContent = `${formatBytes(data.size ?? Math.floor((data.dataBase64.length * 3) / 4))} · 图片预览`;
+      const imgSizeStr = formatBytes(data.size ?? Math.floor((data.dataBase64.length * 3) / 4));
+      editorFileMeta.textContent = t('fs.image_preview_meta', { size: imgSizeStr });
       editorTextarea.style.display = 'none';
       btnEditorSave.style.display = 'none';
       if (imgPreviewWrap && imgPreviewEl) {
@@ -2049,7 +2143,14 @@ async function openFileInEditor(filePath, fileName) {
     // 2. Smart multi-encoding text decode (UTF-8 + GBK/GB18030 + UTF-16)
     const decoded = decodeFileBytesSmart(bytes, rawName);
     if (!decoded.isText && !data.isText) {
-      if (window.confirm(`「${rawName}」是二进制文件 (${formatBytes(data.size ?? bytes.length)})，是否直接下载？`)) {
+      if (
+        window.confirm(
+          t('fs.binary_confirm', {
+            name: rawName,
+            size: formatBytes(data.size ?? bytes.length),
+          })
+        )
+      ) {
         await downloadRemoteFile(filePath, rawName);
       }
       return;
@@ -2065,34 +2166,34 @@ async function openFileInEditor(filePath, fileName) {
     fsEditorModal.style.display = 'flex';
     editorTextarea.focus();
   } catch (err) {
-    showError(`打开文件失败: ${err.message}`);
+    showError(t('fs.open_file_err', { err: err.message }));
   }
 }
 
 async function saveCurrentEditedFile() {
   if (!lastConnectedAddr || !currentEditingPath) return;
   btnEditorSave.disabled = true;
-  btnEditorSave.textContent = '正在保存...';
+  btnEditorSave.textContent = t('fs.saving');
   try {
     const res = await callDeviceRPC(lastConnectedAddr, 'fs_write', {
       path: currentEditingPath,
       content: editorTextarea.value,
       append: false,
     });
-    editorFileMeta.textContent = `${formatBytes(res.size)} · UTF-8 · 已保存`;
-    showToast(`✅ 已保存文件「<strong>${escapeHtml(currentEditingPath)}</strong>」`);
+    editorFileMeta.textContent = t('fs.saved_meta', { size: formatBytes(res.size) });
+    showToast(t('fs.saved_toast', { path: escapeHtml(currentEditingPath) }));
     await loadFsDirectory(currentFsPath);
   } catch (err) {
-    showError(`保存文件失败: ${err.message}`);
+    showError(t('fs.save_err', { err: err.message }));
   } finally {
     btnEditorSave.disabled = false;
-    btnEditorSave.textContent = '保存修改 (⌘S)';
+    btnEditorSave.textContent = t('editor.save');
   }
 }
 
 async function downloadRemoteFile(filePath, fileName) {
   if (!lastConnectedAddr || !filePath) return;
-  setProgress(`正在下载 ${fileName || '文件'}...`, 40);
+  setProgress(t('fs.downloading_progress', { name: fileName || 'file' }), 40);
   try {
     const data = await callDeviceRPC(lastConnectedAddr, 'fs_read', {
       path: filePath,
@@ -2109,10 +2210,15 @@ async function downloadRemoteFile(filePath, fileName) {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
     setProgress('', 0);
-    showToast(`✅ 已下载「<strong>${escapeHtml(data.name || fileName)}</strong>」(${formatBytes(bytes.length)})`);
+    showToast(
+      t('fs.downloaded_toast', {
+        name: escapeHtml(data.name || fileName),
+        size: formatBytes(bytes.length),
+      })
+    );
   } catch (err) {
     setProgress('', 0);
-    showError(`下载失败: ${err.message}`);
+    showError(t('fs.download_err', { err: err.message }));
   }
 }
 
@@ -2129,7 +2235,7 @@ async function uploadFilesToRemote(fileList) {
     try {
       for (let i = 0; i < totalChunks; i++) {
         const pct = Math.round(((i + 1) / totalChunks) * 100);
-        setProgress(`正在上传 ${file.name} (${pct}%)...`, pct);
+        setProgress(t('fs.uploading_progress', { name: file.name, pct }), pct);
         const start = i * chunkSize;
         const end = Math.min(start + chunkSize, totalSize);
         const sliceBuf = await file.slice(start, end).arrayBuffer();
@@ -2140,9 +2246,14 @@ async function uploadFilesToRemote(fileList) {
           append: i > 0,
         });
       }
-      showToast(`✅ 已上传「<strong>${escapeHtml(file.name)}</strong>」(${formatBytes(totalSize)})`);
+      showToast(
+        t('fs.uploaded_toast', {
+          name: escapeHtml(file.name),
+          size: formatBytes(totalSize),
+        })
+      );
     } catch (err) {
-      showError(`上传 ${file.name} 失败: ${err.message}`);
+      showError(t('fs.upload_err', { name: file.name, err: err.message }));
       break;
     }
   }
@@ -2218,20 +2329,20 @@ fsDropzone.addEventListener('drop', (e) => {
 });
 
 btnFsMkdir.addEventListener('click', async () => {
-  const folderName = window.prompt('请输入新建文件夹名称：', '');
+  const folderName = window.prompt(t('fs.mkdir_prompt'), '');
   if (!folderName || !folderName.trim()) return;
   const target = joinRemotePath(currentFsPath, folderName.trim());
   try {
     await callDeviceRPC(lastConnectedAddr, 'fs_mkdir', { path: target });
-    showToast(`✅ 已创建文件夹「<strong>${escapeHtml(folderName.trim())}</strong>」`);
+    showToast(t('fs.mkdir_toast', { name: escapeHtml(folderName.trim()) }));
     await loadFsDirectory(currentFsPath);
   } catch (err) {
-    showError(`新建文件夹失败: ${err.message}`);
+    showError(t('fs.mkdir_err', { err: err.message }));
   }
 });
 
 btnFsNewfile.addEventListener('click', async () => {
-  const fileName = window.prompt('请输入新建文件名称：', 'untitled.txt');
+  const fileName = window.prompt(t('fs.newfile_prompt'), 'untitled.txt');
   if (!fileName || !fileName.trim()) return;
   const target = joinRemotePath(currentFsPath, fileName.trim());
   try {
@@ -2239,7 +2350,7 @@ btnFsNewfile.addEventListener('click', async () => {
     await loadFsDirectory(currentFsPath);
     await openFileInEditor(target, fileName.trim());
   } catch (err) {
-    showError(`新建文件失败: ${err.message}`);
+    showError(t('fs.newfile_err', { err: err.message }));
   }
 });
 
@@ -2299,16 +2410,16 @@ fsTableBody.addEventListener('click', async (e) => {
   if (renameBtn) {
     const oldPath = renameBtn.getAttribute('data-fs-rename');
     const oldName = renameBtn.getAttribute('data-fs-name') || '';
-    const newName = window.prompt('请输入新名称：', oldName);
+    const newName = window.prompt(t('fs.rename_prompt'), oldName);
     if (!newName || !newName.trim() || newName.trim() === oldName) return;
     const parentDir = oldPath.slice(0, Math.max(0, oldPath.lastIndexOf('/'))) || '/';
     const newPath = joinRemotePath(parentDir, newName.trim());
     try {
       await callDeviceRPC(lastConnectedAddr, 'fs_rename', { oldPath, newPath });
-      showToast(`✅ 已重命名为「<strong>${escapeHtml(newName.trim())}</strong>」`);
+      showToast(t('fs.rename_toast', { name: escapeHtml(newName.trim()) }));
       await loadFsDirectory(currentFsPath);
     } catch (err) {
-      showError(`重命名失败: ${err.message}`);
+      showError(t('fs.rename_err', { err: err.message }));
     }
     return;
   }
@@ -2317,13 +2428,13 @@ fsTableBody.addEventListener('click', async (e) => {
   if (delBtn) {
     const targetPath = delBtn.getAttribute('data-fs-delete');
     const name = delBtn.getAttribute('data-fs-name') || targetPath;
-    if (!window.confirm(`确定要删除「${name}」吗？此操作不可撤销。`)) return;
+    if (!window.confirm(t('fs.delete_confirm', { name }))) return;
     try {
       await callDeviceRPC(lastConnectedAddr, 'fs_delete', { path: targetPath });
-      showToast(`🗑️ 已删除「<strong>${escapeHtml(name)}</strong>」`);
+      showToast(t('fs.delete_toast', { name: escapeHtml(name) }));
       await loadFsDirectory(currentFsPath);
     } catch (err) {
-      showError(`删除失败: ${err.message}`);
+      showError(t('fs.delete_err', { err: err.message }));
     }
   }
 });
@@ -2396,19 +2507,19 @@ function renderSystemStatus(st) {
 
   // Headless Mode Remote Control Card
   const isHeadless = Boolean(st.isHeadless);
-  sysHeadlessBadge.textContent = isHeadless ? '● 已开启无头模式' : '常规显示模式';
+  sysHeadlessBadge.textContent = isHeadless ? t('sys.badge_headless_on') : t('sys.badge_headless_off');
   sysHeadlessBadge.classList.toggle('headless', isHeadless);
-  btnSysToggleHeadless.textContent = isHeadless ? '关闭无头模式 (恢复内屏)' : '开启无头模式 (熄灭内屏)';
+  btnSysToggleHeadless.textContent = isHeadless
+    ? t('sys.btn_disable_headless')
+    : t('sys.btn_enable_headless');
   btnSysToggleHeadless.classList.toggle('is-headless', isHeadless);
-  sysHeadlessDesc.textContent = isHeadless
-    ? '当前已熄灭 MacBook 内置屏幕背光并锁定系统防休眠，合盖状态下依然保持全速运转。'
-    : '开启后将熄灭 MacBook 内置屏幕背光并锁定系统防休眠，支持合盖全速运行与远程连接。';
+  sysHeadlessDesc.textContent = isHeadless ? t('sys.desc_headless_on') : t('sys.desc_headless_off');
 
   // Host Overview Card
   sysHostName.textContent = st.hostname || lastConnectedHost;
-  sysMetaChip.textContent = `${st.cpuModel || 'Apple Silicon'} (${st.cpuCores || '--'} 核) · ${st.osVersion || 'macOS'}`;
+  sysMetaChip.textContent = `${st.cpuModel || 'Apple Silicon'} (${st.cpuCores || '--'} ${t('sys.cores_unit')}) · ${st.osVersion || 'macOS'}`;
   sysMetaUptime.textContent = formatUptime(st.uptimeSec);
-  const battStr = st.batteryPct >= 0 ? `${st.batteryPct}%` : '台式机电源';
+  const battStr = st.batteryPct >= 0 ? `${st.batteryPct}%` : t('sys.desktop_power');
   sysMetaPower.textContent = `${st.powerSource || 'AC Power'} · ${battStr}`;
 
   // 4 Live Gauges
@@ -2421,28 +2532,31 @@ function renderSystemStatus(st) {
   const memPct = Number(st.memUsagePct || 0);
   sysMemVal.textContent = `${formatBytes(st.memUsedBytes)} / ${formatBytes(st.memTotalBytes)}`;
   setMeterStyle(sysMemBar, memPct);
-  sysMemSub.textContent = `内存使用率 ${memPct.toFixed(1)}%`;
+  sysMemSub.textContent = t('sys.metric_mem_sub', { pct: memPct.toFixed(1) });
 
   const diskPct = Number(st.diskUsagePct || 0);
   sysDiskVal.textContent = `${formatBytes(st.diskUsedBytes)} / ${formatBytes(st.diskTotalBytes)}`;
   setMeterStyle(sysDiskBar, diskPct);
-  sysDiskSub.textContent = `可用空间 ${formatBytes(st.diskFreeBytes)} (${diskPct.toFixed(1)}%)`;
+  sysDiskSub.textContent = t('sys.metric_disk_sub', {
+    free: formatBytes(st.diskFreeBytes),
+    pct: diskPct.toFixed(1),
+  });
 
   const temp = Number(st.cpuTemp || 0);
-  sysThermalVal.textContent = temp > 0 ? `${temp.toFixed(1)} °C` : '正常';
+  sysThermalVal.textContent = temp > 0 ? `${temp.toFixed(1)} °C` : t('sys.thermal_normal');
   const tempPct = temp > 0 ? Math.min(100, Math.max(10, ((temp - 25) / 75) * 100)) : 25;
   setMeterStyle(sysThermalBar, tempPct);
   sysThermalSub.textContent = st.isFanless
-    ? '风扇: 无风扇静音架构 (Fanless)'
+    ? t('sys.fan_fanless')
     : st.fanSpeed > 0
-      ? `风扇转速: ${st.fanSpeed} RPM`
-      : '风扇: 静止 / 智能温控';
+      ? t('sys.fan_rpm', { rpm: st.fanSpeed })
+      : t('sys.fan_idle');
 
   // Listening TCP Ports Table
   const ports = st.ports || [];
   sysPortsCount.textContent = String(ports.length);
   if (ports.length === 0) {
-    sysPortsBody.innerHTML = `<tr><td colspan="4" class="fs-empty-cell">暂无监听端口</td></tr>`;
+    sysPortsBody.innerHTML = `<tr><td colspan="4" class="fs-empty-cell">${escapeHtml(t('sys.empty_ports'))}</td></tr>`;
   } else {
     sysPortsBody.innerHTML = ports
       .map((p) => {
@@ -2463,8 +2577,9 @@ function renderSystemStatus(st) {
 
   // Top Processes Table
   const procs = st.processes || [];
+  const lblKill = escapeHtml(t('sys.btn_kill'));
   if (procs.length === 0) {
-    sysProcsBody.innerHTML = `<tr><td colspan="5" class="fs-empty-cell">暂无进程数据</td></tr>`;
+    sysProcsBody.innerHTML = `<tr><td colspan="5" class="fs-empty-cell">${escapeHtml(t('sys.empty_procs'))}</td></tr>`;
   } else {
     sysProcsBody.innerHTML = procs
       .map((proc) => {
@@ -2484,7 +2599,7 @@ function renderSystemStatus(st) {
                 data-kill-pid="${escapeHtml(proc.pid)}"
                 data-kill-name="${escapeHtml(shortCmd)}"
               >
-                结束
+                ${lblKill}
               </button>
             </td>
           </tr>
@@ -2500,7 +2615,7 @@ async function refreshSystemStatus() {
     const st = await callDeviceRPC(lastConnectedAddr, 'sys_status', {});
     renderSystemStatus(st);
   } catch (err) {
-    showError(`获取系统状态失败: ${err.message}`);
+    showError(t('sys.status_err', { err: err.message }));
   }
 }
 
@@ -2530,20 +2645,18 @@ btnSysToggleHeadless.addEventListener('click', async () => {
   if (!lastConnectedAddr) return;
   const nextEnable = !(currentSysStatus && currentSysStatus.isHeadless);
   btnSysToggleHeadless.disabled = true;
-  btnSysToggleHeadless.textContent = nextEnable ? '正在开启无头模式...' : '正在恢复内置屏幕...';
+  btnSysToggleHeadless.textContent = nextEnable
+    ? t('sys.btn_enabling_headless')
+    : t('sys.btn_disabling_headless');
   try {
     const st = await callDeviceRPC(lastConnectedAddr, 'sys_toggle_headless', {
       enable: nextEnable,
     });
     renderSystemStatus(st);
-    showToast(
-      nextEnable
-        ? '🟣 已远程开启「<strong>无头模式</strong>」，MacBook 内置屏幕已屏蔽'
-        : '🟢 已远程关闭「<strong>无头模式</strong>」，MacBook 内置屏幕已恢复'
-    );
+    showToast(nextEnable ? t('sys.toast_headless_on') : t('sys.toast_headless_off'));
     fetchDevices();
   } catch (err) {
-    showError(`切换无头模式失败: ${err.message}`);
+    showError(t('sys.err_toggle_headless', { err: err.message }));
   } finally {
     btnSysToggleHeadless.disabled = false;
   }
@@ -2555,13 +2668,13 @@ sysProcsBody.addEventListener('click', async (e) => {
   const pid = Number(killBtn.getAttribute('data-kill-pid'));
   const name = killBtn.getAttribute('data-kill-name') || String(pid);
   if (!pid) return;
-  if (!window.confirm(`确定要结束远端进程「${name} (PID: ${pid})」吗？`)) return;
+  if (!window.confirm(t('sys.kill_confirm', { name, pid }))) return;
   try {
     await callDeviceRPC(lastConnectedAddr, 'sys_kill_process', { pid, force: false });
-    showToast(`✅ 已向进程「<strong>${escapeHtml(name)} (${pid})</strong>」发送终止信号`);
+    showToast(t('sys.kill_toast', { name: escapeHtml(name), pid }));
     setTimeout(refreshSystemStatus, 400);
   } catch (err) {
-    showError(`结束进程失败: ${err.message}`);
+    showError(t('sys.kill_err', { err: err.message }));
   }
 });
 
@@ -2569,6 +2682,8 @@ sysProcsBody.addEventListener('click', async (e) => {
  * Bootstrap Console Session
  */
 async function bootstrap() {
+  applyStaticI18n();
+
   if (window.location.hash.startsWith('#auth_token=')) {
     const tokenFromHash = decodeURIComponent(window.location.hash.slice('#auth_token='.length));
     if (tokenFromHash) {

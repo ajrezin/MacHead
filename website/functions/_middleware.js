@@ -49,8 +49,12 @@ function prefersChineseByHeader(acceptLang) {
   return false;
 }
 
-function buildLocaleCookie(locale) {
-  return `mh_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+function buildLocaleCookie(locale, hostname) {
+  const domainAttr =
+    hostname && (hostname === 'headlessmac.com' || hostname.endsWith('.headlessmac.com'))
+      ? '; Domain=.headlessmac.com'
+      : '';
+  return `mh_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${domainAttr}`;
 }
 
 export async function onRequest(context) {
@@ -90,7 +94,7 @@ export async function onRequest(context) {
       status: 302,
       headers: {
         Location: redirectUrl,
-        'Set-Cookie': buildLocaleCookie(langParam),
+        'Set-Cookie': buildLocaleCookie(langParam, url.hostname),
         'Cache-Control': 'private, no-cache, no-store, must-revalidate',
       },
     });
@@ -160,6 +164,7 @@ export async function onRequest(context) {
         status: 302,
         headers: {
           Location: `${url.origin}${targetPath}${url.search}`,
+          'Set-Cookie': buildLocaleCookie('en', url.hostname),
           'Cache-Control': 'private, no-cache, no-store, must-revalidate',
           Vary: 'Cookie, Accept-Language, CF-IPCountry',
         },

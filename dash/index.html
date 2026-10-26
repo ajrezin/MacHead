@@ -37,8 +37,20 @@
               <span class="brand-tag">CLOUD</span>
             </a>
             <div class="auth-topbar-right">
-              <a href="https://headlessmac.com" target="_blank" rel="noopener" class="topbar-link" id="link-marketing-site">
-                <span>产品官网</span>
+              <div class="lang-switcher" role="group" aria-label="Language switcher">
+                <span class="lang-switcher-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                </span>
+                <button type="button" class="lang-option active" data-lang-btn="zh">中文</button>
+                <span class="lang-divider" aria-hidden="true">|</span>
+                <button type="button" class="lang-option" data-lang-btn="en">EN</button>
+              </div>
+              <a href="https://headlessmac.com/" target="_blank" rel="noopener" class="topbar-link" id="link-marketing-site">
+                <span data-i18n="auth.official_site">产品官网</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M7 17L17 7M17 7H7M17 7V17" />
                 </svg>
@@ -56,8 +68,8 @@
                   <div class="auth-app-icon">
                     <img src="/logo.png" alt="MacHead" width="54" height="54" />
                   </div>
-                  <h1 class="auth-heading">登录 MacHead Cloud</h1>
-                  <p class="auth-subheading">
+                  <h1 class="auth-heading" data-i18n="auth.heading">登录 MacHead Cloud</h1>
+                  <p class="auth-subheading" data-i18n="auth.subheading">
                     通过第三方账号授权，自动同步并一键管理你的 Mac 设备
                   </p>
                 </div>
@@ -66,8 +78,8 @@
                 <div id="auth-client-banner" class="auth-client-banner" style="display: none;">
                   <div class="client-banner-icon">🖥️</div>
                   <div class="client-banner-text">
-                    <div class="client-banner-title">正在连接客户端：<strong id="auth-client-device-name">MacHead</strong></div>
-                    <div class="client-banner-desc">完成下方账号登录后，将自动授权并开启该设备的远程终端服务</div>
+                    <div class="client-banner-title"><span data-i18n="auth.client_connecting">正在连接客户端：</span><strong id="auth-client-device-name">MacHead</strong></div>
+                    <div class="client-banner-desc" data-i18n="auth.client_desc">完成下方账号登录后，将自动授权并开启该设备的远程终端服务</div>
                   </div>
                 </div>
 
@@ -81,7 +93,7 @@
                         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
                       </svg>
                     </span>
-                    <span class="sso-btn-label">使用 GitHub 账号继续</span>
+                    <span class="sso-btn-label" data-i18n="auth.continue_github">使用 GitHub 账号继续</span>
                     <svg class="sso-btn-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M5 12h14M13 5l7 7-7 7" />
                     </svg>
@@ -96,7 +108,7 @@
                         <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 20.9 7.4 24 12 24z" />
                       </svg>
                     </span>
-                    <span class="sso-btn-label">使用 Google 账号继续</span>
+                    <span class="sso-btn-label" data-i18n="auth.continue_google">使用 Google 账号继续</span>
                     <svg class="sso-btn-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M5 12h14M13 5l7 7-7 7" />
                     </svg>
@@ -124,24 +136,24 @@
                   </div>
                 </div>
 
-                <h2 class="auth-heading" style="text-align: center; font-size: 20px;">授权 MacHead 客户端</h2>
+                <h2 class="auth-heading" style="text-align: center; font-size: 20px;" data-i18n="handoff.heading">授权 MacHead 客户端</h2>
                 <p class="auth-subheading" style="text-align: center;">
-                  将账号 <strong id="handoff-account-label">Waffle</strong> 绑定至
+                  <span data-i18n="handoff.bind_prefix">将账号</span> <strong id="handoff-account-label">Waffle</strong> <span data-i18n="handoff.bind_middle">绑定至</span>
                   <strong id="handoff-device-label">MacBook Pro</strong>
                 </p>
 
                 <div class="handoff-perms-box">
                   <div class="perm-item">
                     <span class="perm-check">✓</span>
-                    <span>自动同步设备在线与无头模式状态</span>
+                    <span data-i18n="handoff.perm_1">自动同步设备在线与无头模式状态</span>
                   </div>
                   <div class="perm-item">
                     <span class="perm-check">✓</span>
-                    <span>允许当前账号在网页端一键连接此设备终端与文件</span>
+                    <span data-i18n="handoff.perm_2">允许当前账号在网页端一键连接此设备终端与文件</span>
                   </div>
                 </div>
 
-                <button type="button" id="btn-confirm-handoff" class="primary-submit-btn">
+                <button type="button" id="btn-confirm-handoff" class="primary-submit-btn" data-i18n="handoff.confirm_btn">
                   确认授权并绑定
                 </button>
               </div>
@@ -169,7 +181,7 @@
                 <line x1="8" y1="21" x2="16" y2="21" />
                 <line x1="12" y1="17" x2="12" y2="21" />
               </svg>
-              <span>我的设备</span>
+              <span data-i18n="sidebar.my_devices">我的设备</span>
               <span id="nav-device-count" class="sidebar-pill">0</span>
             </button>
           </nav>
@@ -184,7 +196,7 @@
                 <div id="sidebar-user-name" class="sidebar-user-name">Waffle</div>
                 <div id="sidebar-user-email" class="sidebar-user-email">github</div>
               </div>
-              <button type="button" id="btn-sidebar-logout" class="sidebar-logout-btn" title="退出登录">
+              <button type="button" id="btn-sidebar-logout" class="sidebar-logout-btn" title="退出登录" data-i18n-title="sidebar.logout_title">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                   <polyline points="16 17 21 12 16 7" />
@@ -202,16 +214,28 @@
             <div class="header-breadcrumbs">
               <span class="crumb-muted">MacHead</span>
               <span class="crumb-sep">/</span>
-              <span id="crumb-current-title" class="crumb-active">我的设备</span>
+              <span id="crumb-current-title" class="crumb-active" data-i18n="crumb.my_devices">我的设备</span>
             </div>
 
             <div class="header-actions">
+              <div class="lang-switcher" role="group" aria-label="Language switcher">
+                <span class="lang-switcher-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                </span>
+                <button type="button" class="lang-option active" data-lang-btn="zh">中文</button>
+                <span class="lang-divider" aria-hidden="true">|</span>
+                <button type="button" class="lang-option" data-lang-btn="en">EN</button>
+              </div>
               <button type="button" id="btn-refresh-console" class="header-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="23 4 23 10 17 10" />
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                 </svg>
-                <span>刷新状态</span>
+                <span data-i18n="header.refresh">刷新状态</span>
               </button>
             </div>
           </header>
@@ -221,7 +245,7 @@
           <div id="console-error-banner" class="console-banner error" style="display: none;"></div>
           <div id="console-progress-banner" class="console-progress" style="display: none;">
             <div class="progress-info">
-              <span id="console-progress-text">正在连接终端...</span>
+              <span id="console-progress-text" data-i18n="progress.connecting">正在连接终端...</span>
               <span id="console-progress-pct">25%</span>
             </div>
             <div class="progress-track">
@@ -233,32 +257,32 @@
           <div id="pane-devices" class="console-pane is-active">
             <div class="stats-grid">
               <div class="stat-card">
-                <div class="stat-label">已绑定设备</div>
+                <div class="stat-label" data-i18n="stats.total_devices">已绑定设备</div>
                 <div id="stat-total-devices" class="stat-value">0</div>
               </div>
               <div class="stat-card">
-                <div class="stat-label">当前在线</div>
+                <div class="stat-label" data-i18n="stats.online_devices">当前在线</div>
                 <div id="stat-online-devices" class="stat-value text-green">0</div>
               </div>
               <div class="stat-card">
-                <div class="stat-label">无头模式</div>
+                <div class="stat-label" data-i18n="stats.headless_devices">无头模式</div>
                 <div id="stat-headless-devices" class="stat-value text-purple">0</div>
               </div>
             </div>
 
             <div class="section-bar">
-              <h2 class="section-heading">设备列表</h2>
+              <h2 class="section-heading" data-i18n="devices.section_heading">设备列表</h2>
             </div>
 
             <div id="devices-table-wrap" class="devices-table-card">
               <table class="devices-table">
                 <thead>
                   <tr>
-                    <th>设备</th>
-                    <th>状态</th>
-                    <th>运行模式</th>
-                    <th>最近活跃</th>
-                    <th class="col-actions">操作</th>
+                    <th data-i18n="devices.col_device">设备</th>
+                    <th data-i18n="devices.col_status">状态</th>
+                    <th data-i18n="devices.col_mode">运行模式</th>
+                    <th data-i18n="devices.col_seen">最近活跃</th>
+                    <th class="col-actions" data-i18n="devices.col_actions">操作</th>
                   </tr>
                 </thead>
                 <tbody id="devices-cards-grid"></tbody>
@@ -268,8 +292,8 @@
             <!-- Empty State -->
             <div id="devices-empty-state" class="empty-card" style="display: none;">
               <div class="empty-icon">💻</div>
-              <h3 class="empty-title">暂无绑定的 Mac 设备</h3>
-              <p class="empty-desc">
+              <h3 class="empty-title" data-i18n="devices.empty_title">暂无绑定的 Mac 设备</h3>
+              <p class="empty-desc" data-i18n-html="devices.empty_desc">
                 打开 Mac 上的 <strong>MacHead 偏好设置</strong>，点击左下角的 <strong>「登录账号」</strong> 完成授权后，设备将自动出现在这里。
               </p>
             </div>
@@ -284,7 +308,7 @@
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7" />
                   </svg>
-                  <span>设备列表</span>
+                  <span data-i18n="ws.back_devices">设备列表</span>
                 </button>
                 <div class="ws-device-badge">
                   <span id="term-status-dot" class="status-dot online"></span>
@@ -300,27 +324,27 @@
                     <polyline points="7 9.5 10 12.5 7 15.5" />
                     <line x1="12.5" y1="15.5" x2="17" y2="15.5" />
                   </svg>
-                  <span>终端</span>
+                  <span data-i18n="ws.tab_term">终端</span>
                   <span id="ws-term-tab-count" class="ws-subnav-pill">1</span>
                 </button>
                 <button type="button" class="ws-subnav-btn" data-subpane="files">
                   <svg class="ws-subnav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5l2 2.5h9a2 2 0 0 1 2 2z" />
                   </svg>
-                  <span>文件管理</span>
+                  <span data-i18n="ws.tab_files">文件管理</span>
                 </button>
                 <button type="button" class="ws-subnav-btn" data-subpane="status">
                   <svg class="ws-subnav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="4" width="20" height="16" rx="2.5" />
                     <polyline points="6 12 9 12 10.8 8.5 13.2 15.5 15 12 18 12" />
                   </svg>
-                  <span>状态与远控</span>
+                  <span data-i18n="ws.tab_status">状态与远控</span>
                 </button>
               </div>
 
               <div class="ws-bar-right">
-                <button type="button" id="term-dot-fullscreen" class="ws-action-btn" title="切换全屏">全屏</button>
-                <button type="button" id="btn-term-disconnect" class="ws-action-btn danger" title="断开全部连接并返回">断开</button>
+                <button type="button" id="term-dot-fullscreen" class="ws-action-btn" title="切换全屏" data-i18n="ws.fullscreen" data-i18n-title="ws.fullscreen_title">全屏</button>
+                <button type="button" id="btn-term-disconnect" class="ws-action-btn danger" title="断开全部连接并返回" data-i18n="ws.disconnect" data-i18n-title="ws.disconnect_title">断开</button>
               </div>
             </div>
 
@@ -329,36 +353,36 @@
               <div class="terminal-window">
                 <div class="terminal-titlebar">
                   <div class="window-dots">
-                    <button type="button" id="term-dot-close" class="win-dot close" title="断开并返回设备列表"></button>
+                    <button type="button" id="term-dot-close" class="win-dot close" title="断开并返回设备列表" data-i18n-title="term.dot_close_title"></button>
                     <span class="win-dot minimize"></span>
                     <span class="win-dot maximize"></span>
                   </div>
 
                   <div class="term-tabs-strip">
                     <div id="term-tabs-list" class="term-tabs-list"></div>
-                    <button type="button" id="btn-new-term-tab" class="term-tab-add" title="新建终端标签页">
+                    <button type="button" id="btn-new-term-tab" class="term-tab-add" title="新建终端标签页" data-i18n="term.new_tab" data-i18n-title="term.new_tab_title">
                       + 新建
                     </button>
                   </div>
 
                   <div class="terminal-controls">
                     <span id="term-dims-badge" class="dims-badge">80×24</span>
-                    <button type="button" id="btn-term-paste-remote" class="term-ctrl-btn" title="读取远端 Mac 剪贴板内容">
+                    <button type="button" id="btn-term-paste-remote" class="term-ctrl-btn" title="读取远端 Mac 剪贴板内容" data-i18n-title="term.read_clipboard_title">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                       </svg>
-                      <span>读剪贴板</span>
+                      <span data-i18n="term.read_clipboard">读剪贴板</span>
                     </button>
-                    <button type="button" id="btn-term-copy-remote" class="term-ctrl-btn" title="写入文字到远端 Mac 剪贴板">
+                    <button type="button" id="btn-term-copy-remote" class="term-ctrl-btn" title="写入文字到远端 Mac 剪贴板" data-i18n-title="term.write_clipboard_title">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
                         <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                       </svg>
-                      <span>写剪贴板</span>
+                      <span data-i18n="term.write_clipboard">写剪贴板</span>
                     </button>
-                    <button type="button" id="btn-term-clear" class="term-ctrl-btn">清屏</button>
-                    <button type="button" id="btn-term-reconnect" class="term-ctrl-btn">重连</button>
+                    <button type="button" id="btn-term-clear" class="term-ctrl-btn" data-i18n="term.clear">清屏</button>
+                    <button type="button" id="btn-term-reconnect" class="term-ctrl-btn" data-i18n="term.reconnect">重连</button>
                   </div>
                 </div>
 
@@ -386,29 +410,29 @@
                   <div id="fs-quickpaths-list" class="fs-quickpaths-list"></div>
                   <label class="fs-checkbox-label">
                     <input type="checkbox" id="chk-fs-hidden" />
-                    <span>显示隐藏文件</span>
+                    <span data-i18n="fs.show_hidden">显示隐藏文件</span>
                   </label>
                 </div>
 
                 <!-- Path Bar & File Operations -->
                 <div class="fs-toolbar">
                   <div class="fs-toolbar-nav">
-                    <button type="button" id="btn-fs-up" class="fs-btn" title="返回上级目录">
+                    <button type="button" id="btn-fs-up" class="fs-btn" title="返回上级目录" data-i18n-title="fs.up_title">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 19V5M5 12l7-7 7 7" />
                       </svg>
-                      <span>上级</span>
+                      <span data-i18n="fs.up">上级</span>
                     </button>
-                    <button type="button" id="btn-fs-refresh" class="fs-btn" title="刷新目录">
+                    <button type="button" id="btn-fs-refresh" class="fs-btn" title="刷新目录" data-i18n-title="fs.refresh_title">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10" />
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                       </svg>
-                      <span>刷新</span>
+                      <span data-i18n="fs.refresh">刷新</span>
                     </button>
                     <div class="fs-path-input-wrap">
                       <input type="text" id="input-fs-path" class="fs-path-input" placeholder="/Users/..." />
-                      <button type="button" id="btn-fs-go" class="fs-btn">前往</button>
+                      <button type="button" id="btn-fs-go" class="fs-btn" data-i18n="fs.go">前往</button>
                     </div>
                   </div>
 
@@ -420,7 +444,7 @@
                         <polyline points="17 8 12 3 7 8" />
                         <line x1="12" y1="3" x2="12" y2="15" />
                       </svg>
-                      <span>上传文件</span>
+                      <span data-i18n="fs.upload">上传文件</span>
                     </button>
                     <button type="button" id="btn-fs-mkdir" class="fs-btn">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -428,7 +452,7 @@
                         <line x1="12" y1="11" x2="12" y2="17" />
                         <line x1="9" y1="14" x2="15" y2="14" />
                       </svg>
-                      <span>新建文件夹</span>
+                      <span data-i18n="fs.mkdir">新建文件夹</span>
                     </button>
                     <button type="button" id="btn-fs-newfile" class="fs-btn">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -437,14 +461,14 @@
                         <line x1="12" y1="18" x2="12" y2="12" />
                         <line x1="9" y1="15" x2="15" y2="15" />
                       </svg>
-                      <span>新建文件</span>
+                      <span data-i18n="fs.newfile">新建文件</span>
                     </button>
                     <button type="button" id="btn-fs-open-term" class="fs-btn accent">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="4 17 10 11 4 5" />
                         <line x1="12" y1="19" x2="20" y2="19" />
                       </svg>
-                      <span>在此目录打开终端</span>
+                      <span data-i18n="fs.open_term_here">在此目录打开终端</span>
                     </button>
                   </div>
                 </div>
@@ -452,7 +476,7 @@
                 <!-- Breadcrumbs & Drop Hint -->
                 <div class="fs-subbar">
                   <div id="fs-breadcrumbs" class="fs-breadcrumbs"></div>
-                  <span class="fs-drop-hint">支持拖拽本地文件到此区域直接上传</span>
+                  <span class="fs-drop-hint" data-i18n="fs.drop_hint">支持拖拽本地文件到此区域直接上传</span>
                 </div>
 
                 <!-- File Table -->
@@ -460,15 +484,15 @@
                   <table class="devices-table fs-table">
                     <thead>
                       <tr>
-                        <th>名称</th>
-                        <th>大小</th>
-                        <th>修改时间</th>
-                        <th class="col-actions">操作</th>
+                        <th data-i18n="fs.col_name">名称</th>
+                        <th data-i18n="fs.col_size">大小</th>
+                        <th data-i18n="fs.col_mtime">修改时间</th>
+                        <th class="col-actions" data-i18n="fs.col_actions">操作</th>
                       </tr>
                     </thead>
                     <tbody id="fs-table-body">
                       <tr>
-                        <td colspan="4" class="fs-empty-cell">正在加载目录...</td>
+                        <td colspan="4" class="fs-empty-cell" data-i18n="fs.loading_dir">正在加载目录...</td>
                       </tr>
                     </tbody>
                   </table>
@@ -483,18 +507,18 @@
                 <div class="sys-hero-grid">
                   <div class="sys-card sys-headless-card">
                     <div class="sys-headless-info">
-                      <div class="sys-card-eyebrow">MACHEAD 远程硬件控制</div>
+                      <div class="sys-card-eyebrow" data-i18n="sys.eyebrow_control">MACHEAD 远程硬件控制</div>
                       <div class="sys-headless-title-row">
-                        <h3 class="sys-headless-title">无头模式</h3>
-                        <span id="sys-headless-badge" class="device-tag">常规模式</span>
+                        <h3 class="sys-headless-title" data-i18n="sys.headless_title">无头模式</h3>
+                        <span id="sys-headless-badge" class="device-tag" data-i18n="sys.badge_headless_off">常规显示模式</span>
                       </div>
-                      <p id="sys-headless-desc" class="sys-headless-desc">
+                      <p id="sys-headless-desc" class="sys-headless-desc" data-i18n="sys.desc_headless_off">
                         开启后将熄灭 MacBook 内置屏幕背光并锁定系统防休眠，支持合盖全速运行与远程连接。
                       </p>
                     </div>
                     <div class="sys-headless-action">
-                      <button type="button" id="btn-sys-toggle-headless" class="sys-headless-toggle-btn">
-                        开启无头模式
+                      <button type="button" id="btn-sys-toggle-headless" class="sys-headless-toggle-btn" data-i18n="sys.btn_enable_headless">
+                        开启无头模式 (熄灭内屏)
                       </button>
                     </div>
                   </div>
@@ -502,7 +526,7 @@
                   <div class="sys-card sys-host-card">
                     <div class="sys-host-top">
                       <div>
-                        <div class="sys-card-eyebrow">主机与电源概览</div>
+                        <div class="sys-card-eyebrow" data-i18n="sys.eyebrow_host">主机与电源概览</div>
                         <h3 id="sys-host-name" class="sys-host-name">MacBook Pro</h3>
                       </div>
                       <button type="button" id="btn-sys-refresh" class="fs-btn">
@@ -510,20 +534,20 @@
                           <polyline points="23 4 23 10 17 10" />
                           <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                         </svg>
-                        <span>立即刷新</span>
+                        <span data-i18n="sys.refresh_now">立即刷新</span>
                       </button>
                     </div>
                     <div id="sys-host-meta" class="sys-host-meta-grid">
                       <div class="sys-meta-item">
-                        <span class="sys-meta-label">芯片与系统</span>
+                        <span class="sys-meta-label" data-i18n="sys.meta_chip">芯片与系统</span>
                         <span id="sys-meta-chip" class="sys-meta-val">--</span>
                       </div>
                       <div class="sys-meta-item">
-                        <span class="sys-meta-label">持续运行 (Uptime)</span>
+                        <span class="sys-meta-label" data-i18n="sys.meta_uptime">持续运行</span>
                         <span id="sys-meta-uptime" class="sys-meta-val">--</span>
                       </div>
                       <div class="sys-meta-item">
-                        <span class="sys-meta-label">电源与电池</span>
+                        <span class="sys-meta-label" data-i18n="sys.meta_power">电源与电池</span>
                         <span id="sys-meta-power" class="sys-meta-val">--</span>
                       </div>
                     </div>
@@ -534,7 +558,7 @@
                 <div class="sys-metrics-grid">
                   <div class="sys-card sys-metric-card">
                     <div class="sys-metric-head">
-                      <span class="sys-metric-label">CPU 负载</span>
+                      <span class="sys-metric-label" data-i18n="sys.metric_cpu">CPU 负载</span>
                       <span id="sys-cpu-val" class="sys-metric-val">--%</span>
                     </div>
                     <div class="sys-meter-track">
@@ -545,35 +569,35 @@
 
                   <div class="sys-card sys-metric-card">
                     <div class="sys-metric-head">
-                      <span class="sys-metric-label">内存占用</span>
+                      <span class="sys-metric-label" data-i18n="sys.metric_mem">内存占用</span>
                       <span id="sys-mem-val" class="sys-metric-val">-- / -- GB</span>
                     </div>
                     <div class="sys-meter-track">
                       <div id="sys-mem-bar" class="sys-meter-fill" style="width: 0%;"></div>
                     </div>
-                    <div id="sys-mem-sub" class="sys-metric-sub">占用率 --%</div>
+                    <div id="sys-mem-sub" class="sys-metric-sub">--</div>
                   </div>
 
                   <div class="sys-card sys-metric-card">
                     <div class="sys-metric-head">
-                      <span class="sys-metric-label">磁盘空间 (/)</span>
+                      <span class="sys-metric-label" data-i18n="sys.metric_disk">磁盘空间 (/)</span>
                       <span id="sys-disk-val" class="sys-metric-val">-- / -- GB</span>
                     </div>
                     <div class="sys-meter-track">
                       <div id="sys-disk-bar" class="sys-meter-fill" style="width: 0%;"></div>
                     </div>
-                    <div id="sys-disk-sub" class="sys-metric-sub">可用 -- GB</div>
+                    <div id="sys-disk-sub" class="sys-metric-sub">--</div>
                   </div>
 
                   <div class="sys-card sys-metric-card">
                     <div class="sys-metric-head">
-                      <span class="sys-metric-label">SMC 温度与散热</span>
+                      <span class="sys-metric-label" data-i18n="sys.metric_thermal">SMC 温度与散热</span>
                       <span id="sys-thermal-val" class="sys-metric-val">-- °C</span>
                     </div>
                     <div class="sys-meter-track">
                       <div id="sys-thermal-bar" class="sys-meter-fill" style="width: 0%;"></div>
                     </div>
-                    <div id="sys-thermal-sub" class="sys-metric-sub">风扇: --</div>
+                    <div id="sys-thermal-sub" class="sys-metric-sub">--</div>
                   </div>
                 </div>
 
@@ -581,22 +605,22 @@
                 <div class="sys-tables-grid">
                   <div class="sys-card sys-table-card">
                     <div class="sys-table-header">
-                      <h4 class="sys-table-title">监听端口 (Listening TCP Ports)</h4>
+                      <h4 class="sys-table-title" data-i18n="sys.ports_title">监听端口 (Listening TCP Ports)</h4>
                       <span id="sys-ports-count" class="sidebar-pill">0</span>
                     </div>
                     <div class="sys-table-scroll">
                       <table class="devices-table sys-mini-table">
                         <thead>
                           <tr>
-                            <th>端口</th>
-                            <th>进程名</th>
+                            <th data-i18n="sys.col_port">端口</th>
+                            <th data-i18n="sys.col_proc">进程名</th>
                             <th>PID</th>
-                            <th>监听地址</th>
+                            <th data-i18n="sys.col_addr">监听地址</th>
                           </tr>
                         </thead>
                         <tbody id="sys-ports-body">
                           <tr>
-                            <td colspan="4" class="fs-empty-cell">正在检测监听端口...</td>
+                            <td colspan="4" class="fs-empty-cell" data-i18n="sys.loading_ports">正在检测监听端口...</td>
                           </tr>
                         </tbody>
                       </table>
@@ -605,23 +629,23 @@
 
                   <div class="sys-card sys-table-card">
                     <div class="sys-table-header">
-                      <h4 class="sys-table-title">高占用进程 (Top Processes)</h4>
-                      <span class="sys-table-hint">按 CPU 占用排序</span>
+                      <h4 class="sys-table-title" data-i18n="sys.procs_title">高占用进程 (Top Processes)</h4>
+                      <span class="sys-table-hint" data-i18n="sys.procs_hint">按 CPU 占用排序</span>
                     </div>
                     <div class="sys-table-scroll">
                       <table class="devices-table sys-mini-table">
                         <thead>
                           <tr>
                             <th>PID</th>
-                            <th>进程名</th>
+                            <th data-i18n="sys.col_proc">进程名</th>
                             <th>CPU %</th>
-                            <th>内存</th>
-                            <th class="col-actions">操作</th>
+                            <th data-i18n="sys.col_mem">内存</th>
+                            <th class="col-actions" data-i18n="devices.col_actions">操作</th>
                           </tr>
                         </thead>
                         <tbody id="sys-procs-body">
                           <tr>
-                            <td colspan="5" class="fs-empty-cell">正在加载进程列表...</td>
+                            <td colspan="5" class="fs-empty-cell" data-i18n="sys.loading_procs">正在加载进程列表...</td>
                           </tr>
                         </tbody>
                       </table>
@@ -644,14 +668,14 @@
                     <span id="editor-file-meta" class="ws-modal-meta"></span>
                   </div>
                   <div class="ws-modal-actions">
-                    <button type="button" id="btn-editor-download" class="fs-btn">下载</button>
-                    <button type="button" id="btn-editor-save" class="fs-btn primary">保存修改 (⌘S)</button>
-                    <button type="button" id="btn-editor-close" class="fs-btn">关闭</button>
+                    <button type="button" id="btn-editor-download" class="fs-btn" data-i18n="editor.download">下载</button>
+                    <button type="button" id="btn-editor-save" class="fs-btn primary" data-i18n="editor.save">保存修改 (⌘S)</button>
+                    <button type="button" id="btn-editor-close" class="fs-btn" data-i18n="editor.close">关闭</button>
                   </div>
                 </div>
                 <textarea id="editor-textarea" class="ws-editor-textarea" spellcheck="false"></textarea>
                 <div id="editor-image-preview" class="ws-image-preview" style="display: none;">
-                  <img id="editor-preview-img" alt="文件预览" />
+                  <img id="editor-preview-img" alt="Preview" />
                 </div>
               </div>
             </div>
