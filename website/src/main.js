@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    fetch('/appcast.json')
+    fetch(`/appcast.json?t=${Date.now()}`, { cache: 'no-store' })
         .then(res => res.ok ? res.json() : Promise.reject(res.status))
         .then(data => {
             if (data && data.url && data.version) {
@@ -516,6 +516,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 7. Landing Page Changelog Minimalist Feed Renderer (No Download Buttons)
     const CHANGELOG_DATA = [
+        {
+            version: "0.1.27",
+            date: "2026-10-25",
+            title: "MacHead Cloud 云端控制台、三轨 E2EE 远程终端与全链路安全加固",
+            bullets: [
+                "新增 MacHead Cloud 云端远程控制台 (dash.headlessmac.com)，支持 GitHub / Google 账号 PKCE 安全绑定与免码一键直连。",
+                "新增 Happy Eyeballs 三轨自适应传输引擎：本机 Loopback 零延迟直连、局域网 WebRTC P2P 直连、跨网 Tailcat WireGuard E2EE 端到端加密隧道。",
+                "新增多标签 Web 远程终端、远程文件管理器（拖拽上传与 UTF-8/GB18030 在线代码编辑）及远程硬件遥测与无头模式控制看板。",
+                "全链路安全加固：云端 D1 隧道地址启用 AES-256-GCM 信封加密落库，内置 Go 原生终端口令门禁（防信号中断绕过），客户端令牌升级为 AES-GCM 硬件派生加密保险箱（0600 权限）。"
+            ]
+        },
+        {
+            version: "0.1.25",
+            date: "2026-10-14",
+            title: "重启或退出后开机自动进入无头模式修复",
+            bullets: [
+                "修复重启系统或重新打开应用后无法自动恢复无头模式屏蔽内屏的问题。",
+                "优化开机自启与显示器状态接管时序。"
+            ]
+        },
         {
             version: "0.1.23",
             date: "2026-09-23",
