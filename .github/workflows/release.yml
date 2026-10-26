@@ -182,42 +182,74 @@ jobs:
           
           PUB_DATE=$(date +%Y-%m-%d)
           
-          # 将提取的信息传递给 Python 脚本进行安全的 JSON 重写
+          # 将提取的信息传递给 Python 脚本进行安全的 JSON 与首页版本号同步重写
           export TAG_NAME USER_NOTES PUB_DATE
           python3 -c "
           import json
           import os
-          
+          import re
+
           tag = os.environ['TAG_NAME']
           version = tag.lstrip('v')
           notes = os.environ['USER_NOTES']
           pub_date = os.environ['PUB_DATE']
-          
+
           appcast_path = 'website/public/appcast.json'
           with open(appcast_path, 'r') as f:
               data = json.load(f)
-              
+
           current_build = int(data.get('build', 1))
-          
+
           data['version'] = version
           data['build'] = current_build + 1
           data['pubDate'] = pub_date
           data['url'] = f'https://releases.headlessmac.com/MacHead-{tag}-macos-universal.dmg'
           data['releaseNotes'] = notes
-          
+
           with open(appcast_path, 'w') as f:
               json.dump(data, f, indent=2, ensure_ascii=False)
+
+          index_path = 'website/index.html'
+          with open(index_path, 'r') as f:
+              html = f.read()
+          html = re.sub(
+              r'(<span class=\"badge-text\">)v[0-9.]+( Universal 支持 Apple Silicon / Intel</span>)',
+              rf'\g<1>v{version}\g<2>',
+              html
+          )
+          html = re.sub(
+              r'(id=\"download-cta-link\">下载 macOS Universal DMG)[^<]*(</a>)',
+              rf'\g<1> v{version}\g<2>',
+              html
+          )
+          html = re.sub(
+              r'(\"softwareVersion\":\s*\")[0-9.]+(\")',
+              rf'\g<1>{version}\g<2>',
+              html
+          )
+          with open(index_path, 'w') as f:
+              f.write(html)
           "
-          echo "Successfully updated appcast.json"
+          echo "Successfully updated appcast.json and website/index.html"
 
       - name: Commit and Push appcast.json 💾
         run: |
           TAG_NAME="${{ steps.package.outputs.tag_name }}"
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add website/public/appcast.json
+          git add website/public/appcast.json website/index.html
           git commit -m "chore(release): update appcast.json for ${TAG_NAME}"
           git push origin HEAD:main
+
+      - name: Deploy Updated Website & appcast.json to Cloudflare Pages 🌐
+        run: |
+          cd website
+          npm ci
+          npm run build
+          wrangler pages deploy dist --project-name headlessmac --branch main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Create GitHub Release (Technical Release Notes) 🎁
         uses: softprops/action-gh-release@v2
