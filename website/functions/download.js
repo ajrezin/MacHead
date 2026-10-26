@@ -9,8 +9,11 @@
  * 4. If a version was just withdrawn from R2 before appcast.json updated,
  *    automatically falls back to `latest.dmg` or the previous valid release.
  */
-export async function onRequestGet(context) {
+export async function onRequest(context) {
   const { request, env } = context;
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    return new Response(null, { status: 405 });
+  }
   const fallbackLatestUrl = 'https://releases.headlessmac.com/latest.dmg';
 
   let targetUrl = fallbackLatestUrl;
