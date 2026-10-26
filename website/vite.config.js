@@ -1,14 +1,16 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
-// 配置 Vite 相对资源路径与多页面入口 (index.html 与 changelog.html)
+// 配置 Vite 根路径与中英双语多页面入口
 export default defineConfig({
-  base: './',
+  base: '/',
   build: {
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
         changelog: resolve(__dirname, 'changelog.html'),
+        enMain: resolve(__dirname, 'en/index.html'),
+        enChangelog: resolve(__dirname, 'en/changelog.html'),
       },
     },
   },

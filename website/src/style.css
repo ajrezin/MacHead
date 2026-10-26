@@ -179,6 +179,60 @@ p {
   gap: 10px;
 }
 
+/* Enterprise SaaS Locale / Language Switcher */
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.lang-switcher-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.lang-switcher-link:hover {
+  color: var(--color-text-main);
+}
+
+.lang-switcher-link.active {
+  background: var(--color-bg-card);
+  color: var(--color-text-main);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+}
+
+.lang-globe-icon {
+  width: 13px;
+  height: 13px;
+  opacity: 0.7;
+  margin-left: 6px;
+  margin-right: 2px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.footer-right {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
 /* Hamburger toggle - hidden on desktop */
 .nav-menu-toggle {
   display: none;

@@ -209,35 +209,35 @@ jobs:
           with open(appcast_path, 'w') as f:
               json.dump(data, f, indent=2, ensure_ascii=False)
 
-          index_path = 'website/index.html'
-          with open(index_path, 'r') as f:
-              html = f.read()
-          html = re.sub(
-              r'(<span class=\"badge-text\">)v[0-9.]+( Universal 支持 Apple Silicon / Intel</span>)',
-              rf'\g<1>v{version}\g<2>',
-              html
-          )
-          html = re.sub(
-              r'(id=\"download-cta-link\">下载 macOS Universal DMG)[^<]*(</a>)',
-              rf'\g<1> v{version}\g<2>',
-              html
-          )
-          html = re.sub(
-              r'(\"softwareVersion\":\s*\")[0-9.]+(\")',
-              rf'\g<1>{version}\g<2>',
-              html
-          )
-          with open(index_path, 'w') as f:
-              f.write(html)
+          for index_path in ['website/index.html', 'website/en/index.html']:
+              with open(index_path, 'r') as f:
+                  html = f.read()
+              html = re.sub(
+                  r'(<span class=\"badge-text\">)v[0-9.]+( Universal[^<]*</span>)',
+                  rf'\g<1>v{version}\g<2>',
+                  html
+              )
+              html = re.sub(
+                  r'(id=\"download-cta-link\">(?:下载|Download) macOS Universal DMG)[^<]*(</a>)',
+                  rf'\g<1> v{version}\g<2>',
+                  html
+              )
+              html = re.sub(
+                  r'(\"softwareVersion\":\s*\")[0-9.]+(\")',
+                  rf'\g<1>{version}\g<2>',
+                  html
+              )
+              with open(index_path, 'w') as f:
+                  f.write(html)
           "
-          echo "Successfully updated appcast.json and website/index.html"
+          echo "Successfully updated appcast.json, website/index.html, and website/en/index.html"
 
       - name: Commit and Push appcast.json 💾
         run: |
           TAG_NAME="${{ steps.package.outputs.tag_name }}"
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add website/public/appcast.json website/index.html
+          git add website/public/appcast.json website/index.html website/en/index.html
           git commit -m "chore(release): update appcast.json for ${TAG_NAME}"
           git push origin HEAD:main
 
