@@ -5,7 +5,7 @@
     const utmSource = urlParams.get('utm_source') || 'direct';
     const utmMedium = urlParams.get('utm_medium') || '';
     const utmCampaign = urlParams.get('utm_campaign') || '';
-    // 脚本加载时捕获一次来源 Referrer，供后续所有事件归因使用
+    // Capture the source referrer once when the script loads so all subsequent events can be attributed properly
     const pageReferrer = document.referrer || '';
 
     // 统一上报函数：所有事件均携带完整渠道归因字段
@@ -27,7 +27,7 @@
     // 1. 发送 Page View 事件
     sendTelemetry({ event: 'page_view' });
 
-    // 2. 监听并捕获所有 DMG 下载按钮与 GitHub 点击事件
+    // 2. 监听并捕获所有 DMG Download按钮与 GitHub 点击事件
     document.addEventListener('DOMContentLoaded', function() {
       document.addEventListener('click', function(e) {
         const target = e.target.closest('a');

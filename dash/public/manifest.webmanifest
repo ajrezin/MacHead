@@ -2,7 +2,7 @@
   "id": "/",
   "name": "MacHead Dash — 云端无头远控台",
   "short_name": "MacHead",
-  "description": "端到端加密的 Mac 远程多标签终端、Web 文件管理器与无头模式实时控制台",
+  "description": "端到端加密的 Mac 远程多标签Terminal、Web Files管理器与Headless实时控制台",
   "lang": "zh-CN",
   "start_url": "/",
   "scope": "/",
@@ -41,8 +41,8 @@
   "shortcuts": [
     {
       "name": "我的 Mac 设备",
-      "short_name": "设备列表",
-      "description": "查看并直连已绑定的 MacHead 设备",
+      "short_name": "Devices",
+      "description": "查看并直连Bound的 MacHead 设备",
       "url": "/?tab=devices",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },

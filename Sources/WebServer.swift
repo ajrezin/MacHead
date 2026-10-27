@@ -58,7 +58,7 @@ final class WebServer {
                         NotificationCenter.default.post(name: .webServerStateChanged, object: nil)
                     }
                 case .failed(let error):
-                    NSLog("MacHead: Web 服务器失败: %@", error.localizedDescription)
+                    NSLog("MacHead: Web server failed: %@", error.localizedDescription)
                     self?.stop()
                 default:
                     break
@@ -80,7 +80,7 @@ final class WebServer {
         if let activeListener = listener {
             activeListener.cancel()
             listener = nil
-            NSLog("MacHead: Web 服务器已关闭")
+            NSLog("MacHead: Web 服务器已Close")
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .webServerStateChanged, object: nil)
             }
@@ -811,7 +811,7 @@ final class WebServer {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>MacHead - 登录</title>
+            <title>MacHead - Log in</title>
             <style>
                 body { font-family: system-ui, -apple-system, sans-serif; background: #14120b; color: #edecec; padding: 40px; text-align: center; }
                 .card { background: #1c1b14; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 30px; display: inline-block; max-width: 320px; text-align: left; margin-top: 100px; }

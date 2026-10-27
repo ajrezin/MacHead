@@ -208,7 +208,7 @@ func tailcatSignalWebRTC(this js.Value, args []js.Value) any {
 
 		conn, err := dialCachedTCPPort(ctx, addr, derpMapURL, 41890, logf)
 		if err != nil {
-			return nil, fmt.Errorf("WebRTC 信令端口连接失败: %w", err)
+			return nil, fmt.Errorf("WebRTC signaling port connection failed: %w", err)
 		}
 		defer conn.Close()
 
@@ -218,7 +218,7 @@ func tailcatSignalWebRTC(this js.Value, args []js.Value) any {
 			"lanOnly":  lanOnly,
 		})
 		if _, err := io.Copy(conn, bytes.NewReader(reqBytes)); err != nil {
-			return nil, fmt.Errorf("发送 WebRTC Offer 失败: %w", err)
+			return nil, fmt.Errorf("Failed to send WebRTC offer: %w", err)
 		}
 		if cw, ok := conn.(interface{ CloseWrite() error }); ok {
 			_ = cw.CloseWrite()
@@ -232,10 +232,10 @@ func tailcatSignalWebRTC(this js.Value, args []js.Value) any {
 			Error    string   `json:"error"`
 		}
 		if err := json.NewDecoder(io.LimitReader(conn, 256*1024)).Decode(&resp); err != nil {
-			return nil, fmt.Errorf("解析 WebRTC Answer 失败: %w", err)
+			return nil, fmt.Errorf("Failed to parse WebRTC answer: %w", err)
 		}
 		if !resp.OK || resp.SDP == "" {
-			return nil, fmt.Errorf("WebRTC 协商失败: %s", resp.Error)
+			return nil, fmt.Errorf("WebRTC negotiation failed: %s", resp.Error)
 		}
 
 		return js.ValueOf(map[string]any{
@@ -265,7 +265,7 @@ func tailcatRPC(this js.Value, args []js.Value) any {
 
 		conn, err := dialCachedTCPPort(ctx, addr, derpMapURL, 41892, logf)
 		if err != nil {
-			return nil, fmt.Errorf("RPC 端口连接失败: %w", err)
+			return nil, fmt.Errorf("RPC port connection failed: %w", err)
 		}
 		defer conn.Close()
 
@@ -310,7 +310,7 @@ func tailcatConnectSSH(this js.Value, args []js.Value) any {
 
 	return makePromise(func() (any, error) {
 		if addr == "" {
-			return nil, errors.New("缺少设备连接地址")
+			return nil, errors.New("missing device connection address")
 		}
 		if onData.Type() != js.TypeFunction {
 			return nil, errors.New("onData callback is required")
@@ -323,7 +323,7 @@ func tailcatConnectSSH(this js.Value, args []js.Value) any {
 		notifyStage("tcp_dial")
 		tcpConn, err := dialCachedTCPPort(ctx, addr, derpMapURL, 22, logf)
 		if err != nil {
-			return nil, fmt.Errorf("终端端口连接失败: %w", err)
+			return nil, fmt.Errorf("Terminal端口Connection failed: %w", err)
 		}
 
 		notifyStage("ssh_handshake")
@@ -337,14 +337,14 @@ func tailcatConnectSSH(this js.Value, args []js.Value) any {
 		sshConn, chans, reqs, err := ssh.NewClientConn(tcpConn, "tailcat:22", sshConf)
 		if err != nil {
 			tcpConn.Close()
-			return nil, fmt.Errorf("终端握手失败: %w", err)
+			return nil, fmt.Errorf("Terminal握手失败: %w", err)
 		}
 		sshClient := ssh.NewClient(sshConn, chans, reqs)
 
 		sess, err := sshClient.NewSession()
 		if err != nil {
 			sshClient.Close()
-			return nil, fmt.Errorf("创建终端会话失败: %w", err)
+			return nil, fmt.Errorf("创建Terminal会话失败: %w", err)
 		}
 
 		modes := ssh.TerminalModes{
@@ -355,32 +355,32 @@ func tailcatConnectSSH(this js.Value, args []js.Value) any {
 		if err := sess.RequestPty(termType, rows, cols, modes); err != nil {
 			sess.Close()
 			sshClient.Close()
-			return nil, fmt.Errorf("分配终端失败: %w", err)
+			return nil, fmt.Errorf("分配Terminal失败: %w", err)
 		}
 
 		stdinPipe, err := sess.StdinPipe()
 		if err != nil {
 			sess.Close()
 			sshClient.Close()
-			return nil, fmt.Errorf("绑定终端输入流失败: %w", err)
+			return nil, fmt.Errorf("绑定Terminal输入流失败: %w", err)
 		}
 		stdoutPipe, err := sess.StdoutPipe()
 		if err != nil {
 			sess.Close()
 			sshClient.Close()
-			return nil, fmt.Errorf("绑定终端输出流失败: %w", err)
+			return nil, fmt.Errorf("绑定Terminal输出流失败: %w", err)
 		}
 		stderrPipe, err := sess.StderrPipe()
 		if err != nil {
 			sess.Close()
 			sshClient.Close()
-			return nil, fmt.Errorf("绑定终端错误流失败: %w", err)
+			return nil, fmt.Errorf("绑定Terminal错误流失败: %w", err)
 		}
 
 		if err := sess.Shell(); err != nil {
 			sess.Close()
 			sshClient.Close()
-			return nil, fmt.Errorf("启动远端终端失败: %w", err)
+			return nil, fmt.Errorf("启动远端Terminal失败: %w", err)
 		}
 
 		var (
@@ -424,9 +424,9 @@ func tailcatConnectSSH(this js.Value, args []js.Value) any {
 		go func() {
 			err := sess.Wait()
 			if err != nil && !errors.Is(err, io.EOF) {
-				cleanup(fmt.Sprintf("终端会话已结束 (%v)", err))
+				cleanup(fmt.Sprintf("Terminal会话已结束 (%v)", err))
 			} else {
-				cleanup("终端会话已正常退出")
+				cleanup("Terminal会话已NormalQuit")
 			}
 		}()
 

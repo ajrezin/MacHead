@@ -9,7 +9,7 @@ final class MediaDeviceManager {
     
     private init() {}
     
-    /// 获取默认输入设备 ID
+    /// Get the default input device ID
     private var defaultInputDeviceID: AudioDeviceID? {
         var deviceID = AudioDeviceID(0)
         var propertySize = UInt32(MemoryLayout<AudioDeviceID>.size)
@@ -36,7 +36,7 @@ final class MediaDeviceManager {
         return deviceID
     }
     
-    /// 获取或设置麦克风的静音状态
+    /// 获取或设置麦克风的静音Status
     var isMuted: Bool {
         get {
             guard let deviceID = defaultInputDeviceID else { return false }
@@ -80,14 +80,14 @@ final class MediaDeviceManager {
             )
             
             if status == noErr {
-                NSLog("MacHead: 成功设置麦克风静音状态为: \(newValue)")
+                NSLog("MacHead: 成功设置麦克风静音Status为: \(newValue)")
             } else {
-                NSLog("MacHead: 设置麦克风静音状态失败: \(status)")
+                NSLog("MacHead: 设置麦克风静音Status失败: \(status)")
             }
         }
     }
     
-    /// 无头模式启动时调用：静音麦克风，并缓存原始状态
+    /// Headless启动时调用：静音麦克风，并缓存原始Status
     func muteBuiltInMicrophone() {
         let shouldMute = UserDefaults.standard.bool(forKey: "MuteMicrophoneInHeadlessMode")
         guard shouldMute else { return }
@@ -97,29 +97,29 @@ final class MediaDeviceManager {
         
         if !currentMute {
             isMuted = true
-            NSLog("MacHead: 自动静音内置麦克风，并保存其先前的未静音状态")
+            NSLog("MacHead: Automatic静音内置麦克风，并保存其先前的未静音Status")
         } else {
-            NSLog("MacHead: 内置麦克风已经处于静音状态，无需重复静音")
+            NSLog("MacHead: 内置麦克风已经处于静音Status，无需重复静音")
         }
     }
     
-    /// 无头模式退出时调用：恢复麦克风的原始状态
+    /// HeadlessQuit时调用：恢复麦克风的原始Status
     func unmuteBuiltInMicrophone() {
         if let original = originalMuteState {
             isMuted = original
-            NSLog("MacHead: 已从缓存恢复麦克风的原始静音状态: \(original)")
+            NSLog("MacHead: 已从缓存恢复麦克风的原始静音Status: \(original)")
             originalMuteState = nil
         } else {
             // Fallback: if no cache, unmute it
             isMuted = false
-            NSLog("MacHead: 无静音状态缓存，默认将麦克风恢复为解除静音状态")
+            NSLog("MacHead: 无静音Status缓存，默认将麦克风恢复为解除静音Status")
         }
     }
     
-    /// 强制解除静音并清除缓存状态
+    /// 强制解除静音并清除缓存Status
     func forceUnmute() {
         originalMuteState = nil
         isMuted = false
-        NSLog("MacHead: 强制解除麦克风静音，并清除缓存状态")
+        NSLog("MacHead: 强制解除麦克风静音，并清除缓存Status")
     }
 }

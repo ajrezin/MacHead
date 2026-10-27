@@ -7,7 +7,7 @@ extension Notification.Name {
     static let headlessModeStateChanged = Notification.Name("com.waffle.MacHead.headlessModeStateChanged")
 }
 
-/// 全局/文件级的显示器重配置回调函数，符合 C 语言函数指针的调用约定
+/// Global display reconfiguration callback for display changes, matching the C function-pointer calling convention
 private func displayReconfigurationCallback(
     displayID: CGDirectDisplayID,
     flags: CGDisplayChangeSummaryFlags,
@@ -16,9 +16,9 @@ private func displayReconfigurationCallback(
     guard let userInfo = userInfo else { return }
     let controller = Unmanaged<HeadlessModeController>.fromOpaque(userInfo).takeUnretainedValue()
     
-    // 忽略配置起始阶段（kCGDisplayBeginConfigurationFlag）
-    // 官方 CoreGraphics 规范明确指出：BeginConfiguration 仅代表事务开始，硬件拓扑与驱动状态处于未决中间态，
-    // 不得在此期间调用显示配置修改接口；所有插拔、恢复与无头模式维持逻辑均在配置完成后（非 beginConfigurationFlag）统一处理。
+    // Ignore the initial configuration phase (kCGDisplayBeginConfigurationFlag)
+    // The CoreGraphics specification notes that BeginConfiguration only signals the start of a transaction; the hardware topology and driver state are in a transient pending state.
+    // Do not call display configuration APIs during this phase; plug/unplug, recovery, and headless maintenance logic are handled after configuration completes (when not in beginConfigurationFlag).
     guard !flags.contains(.beginConfigurationFlag) else {
         return
     }
@@ -29,15 +29,15 @@ private func displayReconfigurationCallback(
     let previousExternals = controller.activeExternalDisplays
     controller.activeExternalDisplays = currentExternals
 
-    NSLog("MacHead: 显示配置变更完成。之前外接: %@, 当前外接: %@, 数量: %d, 无头模式: %d",
+    NSLog("MacHead: Display configuration change complete. Previously connected: %@, currently connected: %@, count: %d, Headless: %d",
           previousExternals.description, currentExternals.description, currentExternals.count, controller.isHeadlessModeEnabled ? 1 : 0)
 
-    // 所有外接显示器都已断开（从有外接屏变为无外接屏）：按需安全恢复内屏
+    // All external displays have been disconnected (transitioning from having external displays to none): safely restore the built-in display as needed
     if currentExternals.isEmpty {
         if !previousExternals.isEmpty,
            controller.isHeadlessModeEnabled,
            UserDefaults.standard.bool(forKey: "AutoExitHeadlessOnDisconnect") {
-            NSLog("MacHead: 检测到所有外接显示器已断开，直接退出无头模式！")
+            NSLog("MacHead: Detected all external displays disconnected; exiting headless mode immediately!")
             DispatchQueue.main.async {
                 controller.triggerSafeRecovery()
             }
@@ -45,10 +45,10 @@ private func displayReconfigurationCallback(
         return
     }
 
-    // 无头模式下内屏被系统意外点亮（插拔/唤醒）：延迟片刻让系统稳定后重新切断
+    // Headless下内屏被系统意外点亮（插拔/唤醒)：延迟片刻让系统稳定后重新切断
     if controller.isHeadlessModeEnabled {
         if controller.isBuiltInOnline() {
-            NSLog("MacHead: 无头模式下检测到内屏处于在线状态，重新切断内屏以维持 Headless...")
+            NSLog("MacHead: In headless mode, the built-in display is online; re-disconnecting it to maintain headless mode...")
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 controller.maintainBuiltInDisconnect()
             }
@@ -56,11 +56,11 @@ private func displayReconfigurationCallback(
         return
     }
 
-    // 非无头模式：有新的外接显示器接入时，按需自动恢复 Headless
+    // 非Headless：有新的外接显示器接入时，按需Automatic恢复 Headless
     let newDisplays = currentExternals.subtracting(previousExternals)
     guard !newDisplays.isEmpty,
           UserDefaults.standard.bool(forKey: "AutoRestoreHeadlessOnConnect") else { return }
-    NSLog("MacHead: 检测到新外接显示器已接入: %@，自动恢复 Headless 模式...", newDisplays.description)
+    NSLog("MacHead: Detected a new external display connected: %@, automatically re-enabling headless mode...", newDisplays.description)
     DispatchQueue.main.async {
         controller.enableHeadlessMode()
     }
@@ -77,26 +77,26 @@ final class HeadlessModeController {
     fileprivate(set) var activeExternalDisplays: Set<CGDirectDisplayID> = []
     
     // MARK: - Test Hooks
-    /// 测试模式：动作函数只记录 was*Called 标志位，不触碰真实显示器/麦克风/电源断言/遥测
+    /// Test mode: action functions only record was*Called flags without touching real displays, microphones, power assertions, or telemetry
     var isTestMode = false
     var wasEnableHeadlessModeCalled = false
     var wasDisableHeadlessModeCalled = false
     var wasTriggerSafeRecoveryCalled = false
     var wasMaintainDisconnectCalled = false
     var mockExternalDisplays: Set<CGDirectDisplayID>? = nil
-    /// nil = 读取真实在线状态；否则用该值替代（供测试模拟内屏被系统点亮）
+    /// nil = 读取真实OnlineStatus；否则用该值替代（供测试模拟内屏被系统点亮)
     var mockBuiltInOnline: Bool? = nil
     
     private init() {}
 
-    /// 内置屏是否在线（测试模式可被 mockBuiltInOnline 覆盖）
+    /// Whether the built-in display is online (can be overridden in test mode via mockBuiltInOnline)
     func isBuiltInOnline() -> Bool {
         mockBuiltInOnline ?? DisplayManager.shared.isBuiltInOnline
     }
 
-    /// 维持无头：仅当无头模式生效且仍有外接屏时，重新切断被系统意外点亮的内屏。
-    /// 由显示器回调（0.3s 延迟）与 systemDidWake（0.5s 延迟）共用；0.3/0.5 秒的延迟
-    /// 是有意留出的系统稳定窗口，因此这里重新读取实时外接屏状态而非用旧快照。
+    /// Maintain headless mode: when headless is active and external displays are still present, re-disable the built-in display if the system unexpectedly turns it on.
+    /// Shared by the display callback (0.3s delay) and systemDidWake (0.5s delay); the 0.3/0.5 second delay
+    /// is an intentional stability window, so this re-reads the live external display status instead of using the previous snapshot.
     func maintainBuiltInDisconnect() {
         guard isHeadlessModeEnabled, !currentExternalDisplays().isEmpty else { return }
         if isTestMode {
@@ -120,15 +120,15 @@ final class HeadlessModeController {
         isHeadlessModeEnabled = true
         activeExternalDisplays = currentExternalDisplays()
         UserDefaults.standard.set(true, forKey: "HeadlessModeEnabled")
-        NSLog("MacHead: 正在启用无头模式...")
+        NSLog("MacHead: Enabling headless mode...")
         
         // 1. 切断内屏
         DisplayManager.shared.disconnectBuiltIn()
         
-        // 1.5. 自动静音内置麦克风
+        // 1.5. Automatic静音内置麦克风
         MediaDeviceManager.shared.muteBuiltInMicrophone()
         
-        // 2. 评估并获取电源断言状态
+        // 2. 评估并获取电源断言Status
         evaluatePowerAssertion()
         
         // 4. 监听系统唤醒，确保唤醒后内屏仍被断开
@@ -148,12 +148,12 @@ final class HeadlessModeController {
         guard isHeadlessModeEnabled, !isTestMode else { return }
         isHeadlessModeEnabled = false
         UserDefaults.standard.set(false, forKey: "HeadlessModeEnabled")
-        NSLog("MacHead: 正在关闭无头模式...")
+        NSLog("MacHead: Closing headless mode...")
         
         // 1. 重连内屏
         DisplayManager.shared.reconnectBuiltIn()
         
-        // 1.5. 恢复内置麦克风的静音状态
+        // 1.5. 恢复内置麦克风的静音Status
         MediaDeviceManager.shared.unmuteBuiltInMicrophone()
         
         // 2. 释放所有电源断言
@@ -170,15 +170,15 @@ final class HeadlessModeController {
         TelemetryManager.shared.track(event: "app_event", extraInfo: ["action": "disable_headless"])
     }
     
-    /// 触发安全恢复，直接退出无头模式
+    /// Trigger safe recovery by exiting headless mode immediately
     func triggerSafeRecovery() {
         wasTriggerSafeRecoveryCalled = true
         guard isHeadlessModeEnabled, !isTestMode else { return }
-        NSLog("MacHead: 检测到外接屏断开，直接退出无头模式以恢复内屏")
+        NSLog("MacHead: External display disconnected; exiting headless mode immediately to restore the built-in display")
         disableHeadlessMode()
     }
     
-    /// 动态管理空闲与合盖睡眠断言
+    /// Dynamically manage idle and clamshell sleep assertions
     func updateSleepAssertion(enabled: Bool) {
         let keepRunningOnLidClose = UserDefaults.standard.bool(forKey: "KeepRunningOnLidClose")
         let targetType = keepRunningOnLidClose ? (kIOPMAssertionTypePreventSystemSleep as String) : (kIOPMAssertionTypePreventUserIdleSystemSleep as String)
@@ -220,14 +220,14 @@ final class HeadlessModeController {
     }
     
     
-    /// 重新评估电源断言状态
+    /// 重新评估电源断言Status
     func evaluatePowerAssertion() {
         guard isHeadlessModeEnabled else { return }
         
         let preventIdleSleep = UserDefaults.standard.bool(forKey: "PreventIdleSleep")
         let isBatteryLow = BatteryManager.shared.isBatteryProtectionActive
         
-        // 只有在允许防止睡眠且电池不处于低电量保护状态时，才持有断言
+        // 只有在允许防止睡眠且Battery不处于低电量保护Status时，才持有断言
         let shouldHoldAssertion = preventIdleSleep && !isBatteryLow
         updateSleepAssertion(enabled: shouldHoldAssertion)
     }
@@ -241,7 +241,7 @@ final class HeadlessModeController {
         if result == .success {
             isCallbackRegistered = true
             NSLog("MacHead: 成功注册显示器变化回调")
-            // 延时 1 秒启动显示器插拔监测，避开 App 启动时的初始状态回调
+            // 延时 1 秒启动显示器插拔监测，避开 App 启动时的初始Status回调
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.activeExternalDisplays = self.currentExternalDisplays()
                 self.isDisplayMonitoringStarted = true
@@ -299,7 +299,7 @@ final class HeadlessModeController {
             RunLoop.current.run(until: Date(timeIntervalSinceNow: seconds))
         }
 
-        // 模拟一次"显示器配置变更完成"事件：重置钩子、设置 mock 状态并触发回调
+        // 模拟一次"显示器配置变更完成"事件：重置钩子、设置 mock Status并触发回调
         func fireChange(headless: Bool,
                         previous: Set<CGDirectDisplayID>,
                         current: Set<CGDirectDisplayID>,
@@ -361,7 +361,7 @@ final class HeadlessModeController {
         // Test 4: Plugging in a second external display when headless mode is active.
         // We expect no action.
         print("Test 4: Plugging in a second external display when headless mode is active...")
-        fireChange(headless: true, previous: [101], current: [101, 102], builtInOnline: false) // 内屏本应离线
+        fireChange(headless: true, previous: [101], current: [101, 102], builtInOnline: false) // 内屏本应Offline
         drainMainQueue()
 
         precondition(!controller.wasEnableHeadlessModeCalled, "FAIL: Incorrect action when adding second external display in headless mode!")

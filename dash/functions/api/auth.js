@@ -69,7 +69,7 @@ export async function handleOAuthLogin(request, env, providerOverride) {
   if (provider === 'github') {
     if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET) {
       const errUrl = new URL('/', returnOrigin);
-      errUrl.searchParams.set('auth_error', '未检测到 GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET 配置');
+      errUrl.searchParams.set('auth_error', 'Missing GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET configuration');
       return Response.redirect(errUrl.toString(), 302);
     }
     const ghUrl = new URL('https://github.com/login/oauth/authorize');
@@ -85,7 +85,7 @@ export async function handleOAuthLogin(request, env, providerOverride) {
   if (provider === 'google') {
     if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
       const errUrl = new URL('/', returnOrigin);
-      errUrl.searchParams.set('auth_error', '未检测到 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET 配置');
+      errUrl.searchParams.set('auth_error', 'Missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET configuration');
       return Response.redirect(errUrl.toString(), 302);
     }
     const ggUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -99,7 +99,7 @@ export async function handleOAuthLogin(request, env, providerOverride) {
   }
 
   const errUrl = new URL('/', returnOrigin);
-  errUrl.searchParams.set('auth_error', `不支持的登录方式: ${provider}`);
+  errUrl.searchParams.set('auth_error', `Unsupported sign-in method: ${provider}`);
   return Response.redirect(errUrl.toString(), 302);
 }
 
@@ -120,7 +120,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
     Date.now() - Number(stateObj.t) > OAUTH_STATE_MAX_AGE_MS
   ) {
     return Response.redirect(
-      `${safeDefaultOrigin}/?auth_error=${encodeURIComponent('OAuth 状态校验失败或已过期，请重新发起登录')}`,
+      `${safeDefaultOrigin}/?auth_error=${encodeURIComponent('OAuth state validation failed or expired; please sign in again')}`,
       302
     );
   }
@@ -135,7 +135,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
   }
 
   if (!code) {
-    return Response.redirect(`${targetOrigin}/?auth_error=${encodeURIComponent('未获取到 OAuth 授权码')}`, 302);
+    return Response.redirect(`${targetOrigin}/?auth_error=${encodeURIComponent('OAuth authorization code not received')}`, 302);
   }
 
   try {
@@ -160,7 +160,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
       });
       const tokenData = await tokenResp.json();
       if (!tokenData.access_token) {
-        throw new Error(tokenData.error_description || tokenData.error || 'GitHub 令牌交换失败');
+        throw new Error(tokenData.error_description || tokenData.error || 'GitHub token exchange failed');
       }
 
       const userResp = await fetch('https://api.github.com/user', {
@@ -172,7 +172,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
       });
       const ghUser = await userResp.json();
       if (!userResp.ok || !ghUser || !ghUser.id) {
-        throw new Error('获取 GitHub 用户信息失败');
+        throw new Error('Failed to fetch GitHub user info');
       }
 
       let primaryEmail = ghUser.email || '';
@@ -218,7 +218,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
       });
       const tokenData = await tokenResp.json();
       if (!tokenData.access_token) {
-        throw new Error(tokenData.error_description || tokenData.error || 'Google 令牌交换失败');
+        throw new Error(tokenData.error_description || tokenData.error || 'Google token exchange failed');
       }
 
       const userResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -226,7 +226,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
       });
       const ggUser = await userResp.json();
       if (!userResp.ok || !ggUser || !ggUser.sub) {
-        throw new Error('获取 Google 用户信息失败');
+        throw new Error('Failed to fetch Google user info');
       }
       profile = {
         provider: 'google',
@@ -238,7 +238,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
     }
 
     if (!profile) {
-      return Response.redirect(`${targetOrigin}/?auth_error=${encodeURIComponent('不支持的登录提供商')}`, 302);
+      return Response.redirect(`${targetOrigin}/?auth_error=${encodeURIComponent('Unsupported sign-in provider')}`, 302);
     }
 
     const { sessionToken } = await upsertUserAndCreateSession(env, {
@@ -260,7 +260,7 @@ export async function handleOAuthCallback(request, env, providerOverride) {
     return Response.redirect(redirectTarget.toString(), 302);
   } catch (err) {
     return Response.redirect(
-      `${targetOrigin}/?auth_error=${encodeURIComponent(err.message || 'OAuth 登录失败')}`,
+      `${targetOrigin}/?auth_error=${encodeURIComponent(err.message || 'OAuth sign-in failed')}`,
       302
     );
   }
@@ -376,7 +376,7 @@ export async function onRequestPost(context) {
   if (action === 'approve_app') {
     const auth = await authenticateRequest(request, env);
     if (!auth) {
-      return jsonResponse({ error: '请先登录账号后再授权客户端' }, 401);
+      return jsonResponse({ error: 'Please log in before authorizing the client' }, 401);
     }
     if (auth.clientType === 'macos_app') {
       return jsonResponse({ error: 'Forbidden: client token cannot approve another client' }, 403);

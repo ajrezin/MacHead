@@ -13,13 +13,13 @@ public enum NezhaStatus: Equatable {
     public var displayText: String {
         switch self {
         case .stopped:
-            return "未启用哪吒监控"
+            return "Nezha monitoring is not enabled"
         case .connecting:
-            return "正在建立连接并与服务端握手..."
+            return "Connecting and establishing the server handshake..."
         case .connected:
-            return "已成功连接，正在进行实时心跳通信"
+            return "Connected successfully; live heartbeat communication is in progress"
         case .error(let msg):
-            return "连接失败: \(msg)"
+            return "Connection failed: \(msg)"
         }
     }
 }
@@ -55,7 +55,7 @@ public final class NezhaAgentService {
         guard let server = defaults.string(forKey: "nezhaServer"), !server.isEmpty,
               let secret = defaults.string(forKey: "nezhaSecret"), !secret.isEmpty else {
             print("NezhaAgentService: Missing server or secret configuration")
-            currentStatus = .error(message: "未配置面板地址或连接密钥")
+            currentStatus = .error(message: "Panel address or connection secret not configured")
             return
         }
         
@@ -80,7 +80,7 @@ public final class NezhaAgentService {
         
         guard let path = binaryPath else {
             print("NezhaAgentService: Binary \(binaryName) not found in resources")
-            currentStatus = .error(message: "未找到 nezha-agent 可执行文件")
+            currentStatus = .error(message: "nezha-agent executable not found")
             return
         }
         
@@ -100,7 +100,7 @@ public final class NezhaAgentService {
             try configContent.write(toFile: configPath, atomically: true, encoding: .utf8)
         } catch {
             print("NezhaAgentService: Failed to write config file - \(error.localizedDescription)")
-            currentStatus = .error(message: "配置文件写入失败: \(error.localizedDescription)")
+            currentStatus = .error(message: "Configuration file write failed: \(error.localizedDescription)")
             return
         }
         
@@ -124,7 +124,7 @@ public final class NezhaAgentService {
             
             DispatchQueue.main.async {
                 if self?.currentStatus == .connecting {
-                    self?.currentStatus = .error(message: "进程异常退出 (Code \(proc.terminationStatus))")
+                    self?.currentStatus = .error(message: "进程异常Quit (Code \(proc.terminationStatus))")
                 }
             }
             

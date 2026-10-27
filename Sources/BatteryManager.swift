@@ -18,7 +18,7 @@ final class BatteryManager: ObservableObject {
     private var runLoopSource: CFRunLoopSource?
     private var refreshTimer: Timer?
 
-    // MARK: - 基础电源与充电状态
+    // MARK: - Basic power and charging status
     @Published private(set) var currentCapacity: Int = 100
     @Published private(set) var isCharging: Bool = false
     @Published private(set) var isCharged: Bool = false
@@ -32,7 +32,7 @@ final class BatteryManager: ObservableObject {
         !isUPSActive
     }
 
-    // MARK: - 可调节充电上限与防鼓包保护
+    // MARK: - Adjustable charge limit with swelling protection
     @Published var customLimitEnabled: Bool = UserDefaults.standard.bool(forKey: "CustomChargeLimitEnabled") {
         didSet {
             UserDefaults.standard.set(customLimitEnabled, forKey: "CustomChargeLimitEnabled")
@@ -52,7 +52,7 @@ final class BatteryManager: ObservableObject {
     @Published private(set) var isSMCControlActive: Bool = false
     @Published private(set) var isChargeLimitEnabled: Bool = false
     @Published private(set) var chargeLimitPercent: Int = 80
-    @Published private(set) var chargeLimitSource: String = "未开启"
+    @Published private(set) var chargeLimitSource: String = "Not enabled"
 
     var isSupportedNativeLimit: Bool {
         if #available(macOS 15.0, *) { return true }
@@ -61,22 +61,22 @@ final class BatteryManager: ObservableObject {
 
     @Published private(set) var isPrivilegedHelperConfigured: Bool = FileManager.default.fileExists(atPath: "/etc/sudoers.d/machead")
 
-    // MARK: - 电池健康与容量指标
+    // MARK: - Battery health and capacity metrics
     @Published private(set) var batteryHealth: Double = 100.0
     @Published private(set) var cycleCount: Int = 0
     @Published private(set) var batteryTemperature: Double = 0.0
-    @Published private(set) var rawCurrentCapacity: Int = 0 // 当前电量 (mAh)
-    @Published private(set) var rawMaxCapacity: Int = 0     // 实际可用最大容量 (mAh)
-    @Published private(set) var designCapacity: Int = 0     // 原厂设计容量 (mAh)
+    @Published private(set) var rawCurrentCapacity: Int = 0 // Current charge (mAh)
+    @Published private(set) var rawMaxCapacity: Int = 0     // Actual usable capacity (mAh)
+    @Published private(set) var designCapacity: Int = 0     // Manufacturer-rated design capacity (mAh)
 
-    // MARK: - 实时电气指标
-    @Published private(set) var voltage: Double = 0.0       // 实时电压 (V)
-    @Published private(set) var amperage: Int = 0           // 实时电流 (mA，充电为正，放电为负)
-    @Published private(set) var powerWatts: Double = 0.0    // 实时充放电功率 (W)
-    @Published private(set) var adapterWatts: Int = 0       // 外接适配器额定功率 (W)
-    @Published private(set) var adapterName: String = ""    // 外接适配器描述
+    // MARK: - Real-time electrical metrics
+    @Published private(set) var voltage: Double = 0.0       // Live voltage (V)
+    @Published private(set) var amperage: Int = 0           // Live current (mA; positive while charging, negative while discharging)
+    @Published private(set) var powerWatts: Double = 0.0    // Live charge/discharge power (W)
+    @Published private(set) var adapterWatts: Int = 0       // Rated adapter power (W)
+    @Published private(set) var adapterName: String = ""    // External adapter description
 
-    // MARK: - 智能 UPS 模式与续航预测
+    // MARK: - Smart UPS mode and runtime prediction
     @Published private(set) var timeRemainingMinutes: Int = -1
     @Published private(set) var timeRemainingFormatted: String = ""
 
@@ -140,19 +140,19 @@ final class BatteryManager: ObservableObject {
             if onBattery {
                 var estText = ""
                 if timeRemainingMinutes > 0 {
-                    estText = "，预计还可支撑运行约 \(timeRemainingFormatted)（实时放电功率 \(String(format: "%.1f", powerWatts))W）"
+                    estText = ", expected to continue running for about \(timeRemainingFormatted) (real-time discharge power \(String(format: "%.1f", powerWatts))W)"
                 }
                 NotificationService.shared.sendAlert(
                     type: .powerDisconnect,
-                    title: "外部电源已断开 🔌 (UPS 模式)",
-                    body: "Mac 已切换至电池供电。当前剩余电量：\(currentCapacity)%\(estText)，请及时检查电源连接情况。"
+                    title: "External power disconnected 🔌 (UPS mode)",
+                    body: "Mac has switched to battery power. Current charge: \(currentCapacity)%\(estText). Please check the power connection soon."
                 )
             } else {
-                let adapterInfo = adapterWatts > 0 ? "（已连接 \(adapterWatts)W 适配器）" : ""
+                let adapterInfo = adapterWatts > 0 ? " (Connected \(adapterWatts)W adapter)" : ""
                 NotificationService.shared.sendAlert(
                     type: .powerDisconnect,
-                    title: "外部电源已恢复 🔌",
-                    body: "Mac 已恢复交流电供电\(adapterInfo)，当前剩余电量：\(currentCapacity)%。"
+                    title: "External power restored 🔌",
+                    body: "Mac has resumed AC power\(adapterInfo). Current charge: \(currentCapacity)%."
                 )
             }
         }
@@ -161,8 +161,8 @@ final class BatteryManager: ObservableObject {
         if lowBattery && !wasLowBattery && onBattery && enableProtection {
             NotificationService.shared.sendAlert(
                 type: .lowBattery,
-                title: "系统低电量警告 🔋",
-                body: "Mac 剩余电量已降至 \(currentCapacity)%，低于电池保护阈值（\(thresholdVal)%）。MacHead 已自动释放休眠阻止，Mac 将进入自动休眠状态以保护电池寿命。"
+                title: "Low battery warning 🔋",
+                body: "Mac battery level has dropped to \(currentCapacity)%, below the battery protection threshold (\(thresholdVal)%). MacHead has released sleep prevention; the Mac will enter automatic sleep to protect battery life."
             )
         }
         wasLowBattery = lowBattery
@@ -171,13 +171,13 @@ final class BatteryManager: ObservableObject {
 
         if shouldActive != isBatteryProtectionActive {
             isBatteryProtectionActive = shouldActive
-            NSLog("MacHead: 电池保护状态发生变化 -> 激活: %@", String(shouldActive))
+            NSLog("MacHead: Battery protection status changed -> active: %@", String(shouldActive))
 
             if shouldActive {
                 TelemetryManager.shared.track(event: "app_event", extraInfo: ["action": "battery_protection_fired"])
-                NSLog("MacHead: 低电量保护触发！电量为 %d%% (低于阈值 %d%%) 且处于电池供电下。释放休眠阻碍。", currentCapacity, thresholdVal)
+                NSLog("MacHead: Low-battery protection triggered! Charge is %d%% (below threshold %d%%) while on battery power. Releasing sleep prevention.", currentCapacity, thresholdVal)
             } else {
-                NSLog("MacHead: 电池保护解除 (电量: %d%%, 直供: %@)。", currentCapacity, String(!onBattery))
+                NSLog("MacHead: Battery protection cleared (charge: %d%%, direct power: %@).", currentCapacity, String(!onBattery))
             }
 
             // Notify controller to update assertion
@@ -199,14 +199,14 @@ final class BatteryManager: ObservableObject {
             return
         }
 
-        // 循环次数
+        // Cycle count
         if let cycleNum = dict["CycleCount"] as? NSNumber {
             self.cycleCount = cycleNum.intValue
         } else if let cycle = dict["CycleCount"] as? Int {
             self.cycleCount = cycle
         }
 
-        // 温度 (0.1K 转换为 °C)
+        // Temperature (0.1K to °C)
         if let tempNum = dict["Temperature"] as? NSNumber {
             let tempRaw = tempNum.doubleValue
             self.batteryTemperature = (tempRaw / 10.0) - 273.15
@@ -214,26 +214,26 @@ final class BatteryManager: ObservableObject {
             self.batteryTemperature = (Double(tempRaw) / 10.0) - 273.15
         }
 
-        // 电压 (mV -> V)
+        // Voltage (mV -> V)
         let voltageMV = (dict["Voltage"] as? NSNumber)?.intValue
             ?? (dict["AppleRawBatteryVoltage"] as? NSNumber)?.intValue
             ?? 0
         self.voltage = Double(voltageMV) / 1000.0
 
-        // 电流 (mA，充为正，放为负)
+        // Current (mA; positive when charging, negative when discharging)
         let ampMA = (dict["InstantAmperage"] as? NSNumber)?.intValue
             ?? (dict["Amperage"] as? NSNumber)?.intValue
             ?? 0
         self.amperage = ampMA
 
-        // 实时功率计算 (W)
+        // Real-time power calculation (W)
         if voltageMV > 0 && ampMA != 0 {
             self.powerWatts = abs(Double(ampMA) * Double(voltageMV)) / 1_000_000.0
         } else {
             self.powerWatts = 0.0
         }
 
-        // 容量参数 (mAh)
+        // Capacity parameters (mAh)
         let rawCur = (dict["AppleRawCurrentCapacity"] as? NSNumber)?.intValue
             ?? (dict["CurrentCapacity"] as? NSNumber)?.intValue
             ?? 0
@@ -248,14 +248,14 @@ final class BatteryManager: ObservableObject {
         self.rawMaxCapacity = rawMax
         self.designCapacity = designCap
 
-        // 真实健康度 (SOH) 计算
+        // Actual health (SOH) calculation
         if rawMax > 0 && designCap > 0 {
             self.batteryHealth = (Double(rawMax) / Double(designCap)) * 100.0
         } else if let maxNum = dict["MaxCapacity"] as? NSNumber, maxNum.doubleValue <= 100 {
             self.batteryHealth = maxNum.doubleValue
         }
 
-        // 适配器详情读取 (备选路径)
+        // Adapter detail read (fallback path)
         if self.adapterWatts == 0,
            let details = (dict["AdapterDetails"] as? [String: Any]) ?? (dict["AppleRawAdapterDetails"] as? [[String: Any]])?.first {
             if let w = details["Watts"] as? Int {
@@ -287,16 +287,16 @@ final class BatteryManager: ObservableObject {
                 self.isCharging = info[kIOPSIsChargingKey] as? Bool ?? false
                 self.isCharged = info[kIOPSIsChargedKey] as? Bool ?? false
 
-                // 评估电源与 UPS 状态
+                // Evaluate power source and UPS status
                 let onBattery = (self.powerState == kIOPSBatteryPowerValue)
 
-                // 剩余时间计算 (分钟)
+                // Remaining time calculation (minutes)
                 if onBattery {
                     var estMinutes = -1
                     if let sysTimeToEmpty = info[kIOPSTimeToEmptyKey] as? Int, sysTimeToEmpty > 0 && sysTimeToEmpty < 60000 {
                         estMinutes = sysTimeToEmpty
                     } else if self.amperage < 0 && self.rawCurrentCapacity > 0 {
-                        // 动态根据当前放电电流测算
+                        // Estimate dynamically based on the current discharge current
                         let dyn = Int(Double(self.rawCurrentCapacity) / Double(abs(self.amperage)) * 60.0)
                         if dyn > 0 && dyn < 2880 {
                             estMinutes = dyn
@@ -312,7 +312,7 @@ final class BatteryManager: ObservableObject {
                         self.timeRemainingFormatted = "计算中..."
                     }
                 } else {
-                    // 外接电源状态
+                    // 外接电源Status
                     if self.isCharging {
                         if let fullMinutes = info[kIOPSTimeToFullChargeKey] as? Int, fullMinutes > 0 && fullMinutes < 60000 {
                             self.timeRemainingMinutes = fullMinutes
@@ -423,7 +423,7 @@ final class BatteryManager: ObservableObject {
         }
     }
 
-    /// 更新免密特权配置状态
+    /// 更新免密特权配置Status
     func updatePrivilegeStatus() {
         self.isPrivilegedHelperConfigured = FileManager.default.fileExists(atPath: "/etc/sudoers.d/machead")
     }
@@ -464,7 +464,7 @@ final class BatteryManager: ObservableObject {
         return ok
     }
 
-    // MARK: - 充电上限状态检测与系统对接
+    // MARK: - 充电上限Status检测与系统对接
     func openSystemBatterySettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.Battery-Settings.extension") {
             NSWorkspace.shared.open(url)
@@ -484,7 +484,7 @@ final class BatteryManager: ObservableObject {
             return
         }
 
-        // 3. 解析系统级充电控制策略文件 (针对 macOS 15+)
+        // 3. 解析系统级充电控制策略Files (针对 macOS 15+)
         let path = "/Library/Preferences/com.apple.powerd.charging.plist"
         if let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
            let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
@@ -518,7 +518,7 @@ final class BatteryManager: ObservableObject {
             }
         }
 
-        // 5. 回退状态 (特别区分老系统)
+        // 5. 回退Status (特别区分老系统)
         self.isChargeLimitEnabled = false
         self.chargeLimitPercent = 80
         if isSupportedNativeLimit {

@@ -107,8 +107,8 @@ if [ -f "Resources/tailcat" ]; then
   cp Resources/tailcat "${APP_DIR}/Contents/Resources/tailcat"
   chmod +x "${APP_DIR}/Contents/Resources/tailcat"
 fi
-# devtunnel 为微软专有 EULA 组件，禁止捆绑再分发：CI 不下载、仓库不入库。
-# 本地开发构建若存在该文件会顺带打包；正式分发由用户在 App 内一键安装获取。
+# devtunnel is a Microsoft proprietary EULA component and cannot be bundled or redistributed: CI does not download it, and the repository does not include it.
+# If a local development build contains this file, it will be packaged alongside the app; official distribution is obtained by users through an in-app one-click install.
 if [ -f "Resources/devtunnel" ]; then
   cp Resources/devtunnel "${APP_DIR}/Contents/Resources/devtunnel"
   chmod +x "${APP_DIR}/Contents/Resources/devtunnel"

@@ -3,7 +3,7 @@
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>MacHead 控制面板</title>
+            <title>MacHead Control Panel</title>
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -546,19 +546,19 @@
                 <header>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span style="font-size: 24px; font-family: var(--font-serif);"></span>
-                        <h1>MacHead 远程控制台</h1>
+                        <h1>MacHead Remote Console</h1>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">
                             <span id="theme-icon-container" style="display: flex; align-items: center;"></span>
-                            <span id="theme-text">深色模式</span>
+                            <span id="theme-text">Dark mode</span>
                         </button>
                         <a href="/logout" style="text-decoration: none;">
                             <button class="theme-btn">
                                 <span style="display: flex; align-items: center;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                                 </span>
-                                <span>退出登录</span>
+                                <span>Log out</span>
                             </button>
                         </a>
                     </div>
@@ -573,11 +573,11 @@
                     <!-- CPU Card -->
                     <div class="card">
                         <div class="card-title">
-                            <span>CPU 占用率</span>
-                            <span class="peak-label" id="cpu-peak" title="双击重置" ondblclick="resetPeak('cpu')">峰值: 0%</span>
+                            <span>CPU usage</span>
+                            <span class="peak-label" id="cpu-peak" title="Double-click to reset" ondblclick="resetPeak('cpu')">Peak: 0%</span>
                         </div>
                         <div class="card-value" id="cpu-text">0%</div>
-                        <div class="card-subtitle" id="cpu-temp-text">温度: -- °C</div>
+                        <div class="card-subtitle" id="cpu-temp-text">Temperature: -- °C</div>
                         <div class="sparkline-container">
                             <svg width="100%" height="100%" viewBox="0 0 160 45" preserveAspectRatio="none">
                                 <defs>
@@ -601,11 +601,11 @@
                     <!-- RAM Card -->
                     <div class="card">
                         <div class="card-title">
-                            <span>内存占用</span>
-                            <span class="peak-label" id="ram-peak" title="双击重置" ondblclick="resetPeak('ram')">峰值: 0%</span>
+                            <span>Memory usage</span>
+                            <span class="peak-label" id="ram-peak" title="Double-click to reset" ondblclick="resetPeak('ram')">Peak: 0%</span>
                         </div>
                         <div class="card-value" id="ram-text">0%</div>
-                        <div class="card-subtitle" id="ram-details-text">已用: -- GB / -- GB</div>
+                        <div class="card-subtitle" id="ram-details-text">Used: -- GB / -- GB</div>
                         <div class="sparkline-container">
                             <svg width="100%" height="100%" viewBox="0 0 160 45" preserveAspectRatio="none">
                                 <defs>
@@ -629,11 +629,11 @@
                     <!-- GPU Card -->
                     <div class="card">
                         <div class="card-title">
-                            <span>GPU 占用率</span>
-                            <span class="peak-label" id="gpu-peak" title="双击重置" ondblclick="resetPeak('gpu')">峰值: 0%</span>
+                            <span>GPU usage</span>
+                            <span class="peak-label" id="gpu-peak" title="Double-click to reset" ondblclick="resetPeak('gpu')">Peak: 0%</span>
                         </div>
                         <div class="card-value" id="gpu-text">0%</div>
-                        <div class="card-subtitle" id="gpu-vram-text">显存: -- GB / -- GB</div>
+                        <div class="card-subtitle" id="gpu-vram-text">VRAM: -- GB / -- GB</div>
                         <div class="sparkline-container">
                             <svg width="100%" height="100%" viewBox="0 0 160 45" preserveAspectRatio="none">
                                 <defs>
@@ -659,10 +659,10 @@
                     <!-- Network Card -->
                     <div class="card" style="grid-column: 1 / -1;">
                         <div class="card-title">
-                            <span>实时网络吞吐量</span>
+                            <span>Live network throughput</span>
                             <div style="display:flex; gap:12px;">
-                                <span class="peak-label" id="rx-peak" title="双击重置下载峰值" ondblclick="resetPeak('rx')">↓ 峰值: 0 B/s</span>
-                                <span class="peak-label" id="tx-peak" title="双击重置上传峰值" ondblclick="resetPeak('tx')">↑ 峰值: 0 B/s</span>
+                                <span class="peak-label" id="rx-peak" title="Double-click to reset download peak" ondblclick="resetPeak('rx')">↓ Peak: 0 B/s</span>
+                                <span class="peak-label" id="tx-peak" title="Double-click to reset upload peak" ondblclick="resetPeak('tx')">↑ Peak: 0 B/s</span>
                             </div>
                         </div>
                         <div class="card-value" style="font-size:22px; justify-content:space-between; width:100%; margin-top:4px;">
@@ -727,7 +727,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="label">电池实时温度</td>
+                                <td class="label">Battery实时温度</td>
                                 <td class="val" id="battery-temp-text">正在查询...</td>
                             </tr>
                             <tr>
@@ -741,7 +741,7 @@
                 <div class="grid">
                     <!-- Mode Status Card -->
                     <div class="card">
-                        <div class="card-title">系统运行状态</div>
+                        <div class="card-title">系统运行Status</div>
                         <div class="card-value" id="mode-text">
                             <span class="status-dot" id="mode-dot"></span>
                             <span id="mode-label" style="font-size: 20px; font-weight: 500; margin-left: 6px;">正在连接...</span>
@@ -753,7 +753,7 @@
                     
                     <!-- Battery Health Card -->
                     <div class="card">
-                        <div class="card-title">电池与电源状态</div>
+                        <div class="card-title">Battery & power status</div>
                         <table class="meta-table" style="margin-top:4px;">
                             <tr>
                                 <td class="label">剩余电量 / 充电</td>
@@ -771,11 +771,11 @@
                                 <td class="val" id="power-source-text">正在查询...</td>
                             </tr>
                             <tr>
-                                <td class="label">预计支撑 / 状态</td>
+                                <td class="label">预计支撑 / Status</td>
                                 <td class="val" id="battery-time-remaining">--</td>
                             </tr>
                             <tr>
-                                <td class="label">电池健康 / 循环</td>
+                                <td class="label">Battery健康 / Cycle</td>
                                 <td class="val"><span id="battery-health">--%</span> · <span id="battery-cycles">-- 次</span></td>
                             </tr>
                             <tr>
@@ -796,10 +796,10 @@
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 10px;">
                             <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                                    <span style="font-weight:600; font-size:13px;">SSH 远程登录</span>
+                                    <span style="font-weight:600; font-size:13px;">SSH 远程Log in</span>
                                     <span id="ssh-badge" class="service-badge inactive">未开启</span>
                                 </div>
-                                <div style="font-size:11px; color:var(--text-muted); margin-bottom: 8px;">端口 22 · 字符终端</div>
+                                <div style="font-size:11px; color:var(--text-muted); margin-bottom: 8px;">端口 22 · 字符Terminal</div>
                                 <div id="ssh-action-area" style="font-size:12px; font-family:var(--font-mono); color:var(--text-primary); word-break:break-all;">--</div>
                             </div>
                             <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
@@ -807,15 +807,15 @@
                                     <span style="font-weight:600; font-size:13px;">屏幕共享 (VNC)</span>
                                     <span id="vnc-badge" class="service-badge inactive">未开启</span>
                                 </div>
-                                <div style="font-size:11px; color:var(--text-muted); margin-bottom: 8px;">端口 5900 · 远程桌面</div>
+                                <div style="font-size:11px; color:var(--text-muted); margin-bottom: 8px;">端口 5900 · 远程Desktop</div>
                                 <div id="vnc-action-area" style="font-size:12px; font-family:var(--font-mono); color:var(--text-primary); word-break:break-all;">--</div>
                             </div>
                             <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                                    <span style="font-weight:600; font-size:13px;">文件共享 (SMB)</span>
+                                    <span style="font-weight:600; font-size:13px;">Files共享 (SMB)</span>
                                     <span id="smb-badge" class="service-badge inactive">未开启</span>
                                 </div>
-                                <div style="font-size:11px; color:var(--text-muted); margin-bottom: 8px;">端口 445 · 局域网访达与文件挂载</div>
+                                <div style="font-size:11px; color:var(--text-muted); margin-bottom: 8px;">端口 445 · 局域网访达与Files挂载</div>
                                 <div id="smb-action-area" style="font-size:12px; font-family:var(--font-mono); color:var(--text-primary); word-break:break-all;">--</div>
                             </div>
                         </div>
@@ -830,7 +830,7 @@
                         <div class="control-row">
                             <div>
                                 <div class="control-label">MacBook Headless 模式</div>
-                                <div class="control-desc">关闭内置屏幕以模拟独立 Mac Studio 行为。</div>
+                                <div class="control-desc">Close内置屏幕以模拟独立 Mac Studio 行为。</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="headless-toggle" onchange="toggleSetting('headless')">
@@ -852,7 +852,7 @@
                         <div class="control-row">
                             <div>
                                 <div class="control-label">禁用内置触控板</div>
-                                <div class="control-desc">检测到外接鼠标时，自动关闭触控板输入以防误触。</div>
+                                <div class="control-desc">Detected外接鼠标时，AutomaticClose触控板输入以防误触。</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="trackpad-toggle" onchange="toggleSetting('trackpad')">
@@ -862,8 +862,8 @@
                         
                         <div class="control-row">
                             <div>
-                                <div class="control-label">无头模式下禁用键盘和触控板</div>
-                                <div class="control-desc">进入无头模式后，自动屏蔽内置键盘按键与内置触控板输入以防误触。</div>
+                                <div class="control-label">Headless下禁用键盘和触控板</div>
+                                <div class="control-desc">进入Headless后，Automatic屏蔽内置键盘按键与内置触控板输入以防误触。</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="keyboard-toggle" onchange="toggleSetting('keyboard-headless')">
@@ -874,7 +874,7 @@
                         <div class="control-row">
                             <div>
                                 <div class="control-label">静音内置麦克风</div>
-                                <div class="control-desc">保护物理隐私，进入无头模式时静音系统麦克风。</div>
+                                <div class="control-desc">保护物理隐私，进入Headless时静音系统麦克风。</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="microphone-toggle" onchange="toggleSetting('microphone')">
@@ -889,8 +889,8 @@
 
 <div class="control-row">
                             <div>
-                                <div class="control-label">断开外接显示器时自动退出</div>
-                                <div class="control-desc">检测到所有外接显示器断开时，自动恢复内置屏幕防黑屏。</div>
+                                <div class="control-label">断开外接显示器时AutomaticQuit</div>
+                                <div class="control-desc">Detected所有外接显示器断开时，Automatic恢复内置屏幕防黑屏。</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="exit-disconnect-toggle" onchange="toggleSetting('exit-disconnect')">
@@ -900,8 +900,8 @@
                         
                         <div class="control-row">
                             <div>
-                                <div class="control-label">接入外接显示器时自动恢复</div>
-                                <div class="control-desc">有外接显示器重新接入时，自动重入 Headless 并屏蔽内置屏。</div>
+                                <div class="control-label">接入外接显示器时Automatic恢复</div>
+                                <div class="control-desc">有外接显示器重新接入时，Automatic重入 Headless 并屏蔽内置屏。</div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="restore-connect-toggle" onchange="toggleSetting('restore-connect')">
@@ -912,7 +912,7 @@
                         <div class="control-row">
                             <div>
                                 <div class="control-label">防鼓包充电上限 (Charge Limit)</div>
-                                <div class="control-desc" id="charge-limit-desc">达到设定上限后暂停充电，延缓电池高压与发热老化（老系统/全机型通用）。</div>
+                                <div class="control-desc" id="charge-limit-desc">达到设定上限后暂停充电，延缓Battery高压与发热老化（老系统/全机型通用)。</div>
                             </div>
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <select id="charge-limit-select" onchange="setChargeLimitValue(this.value)" style="background:#232328; color:#eee; border:1px solid #444; border-radius:6px; padding:4px 8px; font-size:12px; cursor:pointer;">
@@ -979,11 +979,11 @@
                     if (!el) return;
                     
                     if (metric === 'cpu' || metric === 'ram' || metric === 'gpu') {
-                        el.innerText = '峰值: ' + Math.round(peaks[metric]) + '%';
+                        el.innerText = 'Peak: ' + Math.round(peaks[metric]) + '%';
                     } else if (metric === 'rx') {
-                        el.innerText = '↓ 峰值: ' + formatSpeed(peaks[metric]);
+                        el.innerText = '↓ Peak: ' + formatSpeed(peaks[metric]);
                     } else if (metric === 'tx') {
-                        el.innerText = '↑ 峰值: ' + formatSpeed(peaks[metric]);
+                        el.innerText = '↑ Peak: ' + formatSpeed(peaks[metric]);
                     }
                 }
 
@@ -1099,7 +1099,7 @@
                         btnText.innerText = '浅色模式';
                     } else {
                         btnIcon.innerHTML = moonSVG;
-                        btnText.innerText = '深色模式';
+                        btnText.innerText = 'Dark mode';
                     }
                 }
 
@@ -1121,7 +1121,7 @@
                         headlessToggle.checked = true;
                     } else {
                         modeDot.className = "status-dot inactive";
-                        modeLabel.innerText = "Normal 模式 (显示正常)";
+                        modeLabel.innerText = "Normal 模式 (显示Normal)";
                         headlessToggle.checked = false;
                     }
                     
@@ -1145,7 +1145,7 @@
                             const resumeVal = Math.max(20, limitThreshold - 5);
                             descEl.innerHTML = '<span style="color:#52c41a;font-weight:600;">已开启自主守护：</span>' + limitThreshold + '% 停止充电，降至 ' + resumeVal + '% 恢复补电 (Sailing Mode)。';
                         } else {
-                            descEl.innerText = '达到设定上限后暂停充电，延缓电池高压与发热老化（老系统/全机型通用）。';
+                            descEl.innerText = '达到设定上限后暂停充电，延缓Battery高压与发热老化（老系统/全机型通用)。';
                         }
                     }
                     
@@ -1154,10 +1154,10 @@
                     document.getElementById('charging-indicator').style.display = data.isCharging ? 'inline' : 'none';
 
                     const powerWatts = data.batteryPowerWatts || 0;
-                    document.getElementById('battery-power-val').innerText = powerWatts > 0 ? (powerWatts.toFixed(1) + ' W') : (data.isCharging ? '充电中' : '0.0 W (直供)');
+                    document.getElementById('battery-power-val').innerText = powerWatts > 0 ? (powerWatts.toFixed(1) + ' W') : (data.isCharging ? 'Charging' : '0.0 W (直供)');
 
                     if (data.isUPSActive) {
-                        document.getElementById('power-source-text').innerHTML = '<span style="color:#f5a623;font-weight:600;">🔋 电池供电 (UPS 模式)</span>';
+                        document.getElementById('power-source-text').innerHTML = '<span style="color:#f5a623;font-weight:600;">🔋 Battery供电 (UPS 模式)</span>';
                         document.getElementById('battery-time-remaining').innerHTML = '<span style="color:#f5a623;font-weight:600;">预计支撑 ' + (data.timeRemainingFormatted || '计算中...') + '</span>';
                     } else {
                         const adapterText = data.adapterWatts > 0 ? (' (' + data.adapterWatts + 'W 适配器)') : ' (AC)';
@@ -1185,7 +1185,7 @@
                     let dotClass = 'status-dot';
                     switch (data.thermalState) {
                         case 'Nominal':
-                            thermalStr = '正常 (Nominal)';
+                            thermalStr = 'Normal (Nominal)';
                             dotClass += ' nominal';
                             break;
                         case 'Fair':
@@ -1296,7 +1296,7 @@
                     }
 
                     // Lid & Clamshell state
-                    document.getElementById('lid-state-text').innerText = data.headlessModeEnabled ? '💻 已关闭内屏 (Headless)' : '💻 屏幕开启 (Normal)';
+                    document.getElementById('lid-state-text').innerText = data.headlessModeEnabled ? '💻 已Close内屏 (Headless)' : '💻 屏幕开启 (Normal)';
 
                     // Process Diagnostic Alerts
                     updateAlerts(data);
@@ -1328,13 +1328,13 @@
                         alerts.push({
                             type: 'danger',
                             icon: '🔥',
-                            text: '<b>电池温度过高（' + data.batteryTemp.toFixed(1) + ' °C）：</b>检测到电池面临严重高热风险。请开盖以散发积热，避免电池老化与鼓包！'
+                            text: '<b>Battery温度过高（' + data.batteryTemp.toFixed(1) + ' °C)：</b>DetectedBattery面临严重高热风险。请开盖以散发积热，避免Battery老化与鼓包！'
                         });
                     } else if (data.batteryTemp >= 42) {
                         alerts.push({
                             type: 'warning',
                             icon: '⚠️',
-                            text: '<b>电池温度偏高（' + data.batteryTemp.toFixed(1) + ' °C）：</b>合盖工作站可能空气流通受阻，请确保散热风口畅通。'
+                            text: '<b>Battery温度偏高（' + data.batteryTemp.toFixed(1) + ' °C)：</b>合盖工作站可能空气流通受阻，请确保散热风口畅通。'
                         });
                     }
 
@@ -1345,7 +1345,7 @@
                         alerts.push({
                             type: 'warning',
                             icon: '🔋',
-                            text: '<b>UPS 电池模式运行中：</b>外部市电已中断，MacBook 依靠内置电池续航（剩余 ' + data.batteryCapacity + '%，' + estTimeStr + powerStr + '）。若电量跌破阈值，将自动进入安全休眠。'
+                            text: '<b>UPS Battery模式运行中：</b>外部市电已中断，MacBook 依靠内置Battery续航（剩余 ' + data.batteryCapacity + '%，' + estTimeStr + powerStr + ')。若电量跌破阈值，将Automatic进入安全休眠。'
                         });
                     }
 
@@ -1354,7 +1354,7 @@
                         alerts.push({
                             type: 'warning',
                             icon: '🔋',
-                            text: '<b>电池建议检修：</b>最大容量已劣化至 ' + data.batteryHealth.toFixed(1) + '%（低于 80%），长期 7×24 小时插电运行请关注电池安全。'
+                            text: '<b>Battery建议检修：</b>最大容量已劣化至 ' + data.batteryHealth.toFixed(1) + '%（低于 80%)，长期 7×24 小时插电运行请关注Battery安全。'
                         });
                     }
 
@@ -1363,7 +1363,7 @@
                         alerts.push({
                             type: 'warning',
                             icon: '🛡️',
-                            text: '<b>长期满电建议开启 80% 限充：</b>当前电量已达 100%。作为长期合盖常驻服务器，持续高压高充易导致锂电池加速鼓包，建议在系统设置中开启 80% 充电上限。'
+                            text: '<b>长期满电建议开启 80% 限充：</b>当前电量已达 100%。作为长期合盖常驻服务器，持续高压高充易导致锂Battery加速鼓包，建议在系统设置中开启 80% 充电上限。'
                         });
                     }
 
@@ -1386,7 +1386,7 @@
                     if (navigator.clipboard) {
                         navigator.clipboard.writeText(text).then(() => {
                             const original = btn.innerText;
-                            btn.innerText = '已复制!';
+                            btn.innerText = 'Copied!';
                             btn.style.color = '#42b883';
                             setTimeout(() => {
                                 btn.innerText = original;
@@ -1415,7 +1415,7 @@
                         } else {
                             sshBadge.className = 'service-badge inactive';
                             sshBadge.innerText = '未开启';
-                            sshArea.innerHTML = `<span style="color:var(--text-muted); font-size:11px;">未在系统共享中启用远程登录</span>`;
+                            sshArea.innerHTML = `<span style="color:var(--text-muted); font-size:11px;">未在系统共享中启用远程Log in</span>`;
                         }
                     }
 
@@ -1453,7 +1453,7 @@
                         } else {
                             smbBadge.className = 'service-badge inactive';
                             smbBadge.innerText = '未开启';
-                            smbArea.innerHTML = `<span style="color:var(--text-muted); font-size:11px;">未在系统共享中启用文件共享</span>`;
+                            smbArea.innerHTML = `<span style="color:var(--text-muted); font-size:11px;">未在系统共享中启用Files共享</span>`;
                         }
                     }
                 }

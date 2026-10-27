@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="zh-CN" prefix="og: https://ogp.me/ns#">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- SEO Meta Tags -->
-    <title>MacHead：碎屏 MacBook 变身无头服务器（免费开源）</title>
-    <meta name="description" content="免费开源的 macOS 工具：让闲置/碎屏 MacBook 合盖变身无头服务器，关闭内屏、静音麦克风、防误触、电池守护。Free, open-source, Apple Silicon + Intel." />
+    <title>MacHead: Turn a Broken-Screen MacBook into a Headless Server (Free & Open Source)</title>
+    <meta name="description" content="Free, open-source macOS utility that turns an idle or broken-screen MacBook into a headless server by closing the lid, muting the mic, preventing accidental touches, and protecting the battery. Apple Silicon + Intel." />
     <link rel="canonical" href="https://headlessmac.com/" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <meta name="theme-color" content="#fbf9fa" media="(prefers-color-scheme: light)" />
@@ -29,7 +29,7 @@
       "applicationCategory": "UtilitiesApplication",
       "license": "https://www.apache.org/licenses/LICENSE-2.0",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "description": "免费开源的 macOS 工具：让闲置或碎屏 MacBook 合盖变身无头服务器，关闭内屏、防休眠、静音麦克风、电池守护，带 Web 控制台与远程访问。"
+      "description": "Free, open-source macOS utility that turns an idle or broken-screen MacBook into a headless server with a closed lid, display shutdown, sleep prevention, muted microphone, battery protection, and web console access."
     }
     </script>
     <script type="application/ld+json">
@@ -39,35 +39,35 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "碎屏的 MacBook 能用 MacHead 当服务器吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以。MacHead 的无头模式会关闭内屏并以虚拟显示工作，内屏损坏不影响当服务器使用；首次配置可通过外接显示器或屏幕共享完成。" }
+          "name": "Can a broken-screen MacBook run as a server with MacHead?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. MacHead’s headless mode turns off the internal display and works with a virtual display, so a broken screen does not prevent it from being used as a server; initial setup can be done via an external display or screen sharing." }
         },
         {
           "@type": "Question",
-          "name": "MacBook 合盖运行会不会过热或伤电池？",
-          "acceptedAnswer": { "@type": "Answer", "text": "MacHead 带电池守护：电量过低时自动恢复正常睡眠，并有温度告警。无头服务器建议接电源使用，合盖时把机器放在通风的硬质表面上。" }
+          "name": "Will a MacBook running with the lid closed overheat or damage the battery?",
+          "acceptedAnswer": { "@type": "Answer", "text": "MacHead includes battery protection: when the charge gets too low, it automatically restores normal sleep behavior and raises temperature warnings. A headless server should normally run on AC power, and when closed, place it on a ventilated hard surface." }
         },
         {
           "@type": "Question",
-          "name": "Intel 的 MacBook 可以用吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "可以。MacHead 同时支持 Apple Silicon 与 Intel 机型，系统要求 macOS 12 或更高版本。" }
+          "name": "Can Intel MacBooks be used?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. MacHead supports both Apple Silicon and Intel Macs, with a macOS 12 or later requirement." }
         },
         {
           "@type": "Question",
-          "name": "MacHead 和 Amphetamine、caffeinate 有什么区别？",
-          "acceptedAnswer": { "@type": "Answer", "text": "Amphetamine 与 caffeinate 主要解决闲置休眠，合盖触发的 clamshell 睡眠仍需额外处理。MacHead 是完整的无头工作站模式：关闭内屏、处理合盖睡眠、虚拟显示、Web 控制台、CLI 与远程访问（Cloudflare Tunnel / Dev Tunnels / FRP）一体。" }
+          "name": "What’s the difference between MacHead and Amphetamine or caffeinate?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Amphetamine and caffeinate mainly keep the system awake while idle, but clamshell sleep still requires additional handling when the lid is closed. MacHead is a complete headless workstation mode: it disables the internal display, handles lid-closed sleep, adds a virtual display, and integrates a web console, CLI, and remote access (Cloudflare Tunnel / Dev Tunnels / FRP)." }
         },
         {
           "@type": "Question",
-          "name": "MacHead 收费吗？",
-          "acceptedAnswer": { "@type": "Answer", "text": "免费且开源，基于 Apache-2.0 许可证发布，源码在 GitHub（ox01024/MacHead）。" }
+          "name": "Is MacHead free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, it is free and open source under the Apache-2.0 license, with source code available on GitHub (ox01024/MacHead)." }
         }
       ]
     }
     </script>
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="MacHead - Turn MacBook into Headless Server" />
@@ -92,7 +92,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "MacHead",
-        "alternateName": ["MacHead Headless Server Manager", "MacBook 无头服务器管理工具"],
+        "alternateName": ["MacHead Headless Server Manager", "MacBook Headless Server Manager"],
         "operatingSystem": "macOS 12.0+",
         "applicationCategory": "UtilityApplication",
         "offers": {
@@ -123,7 +123,7 @@
         "name": "MacHead",
         "alternateName": "HeadlessMac",
         "url": "https://headlessmac.com/",
-        "inLanguage": "zh-CN"
+        "inLanguage": "en"
       }
     </script>
 
@@ -165,11 +165,11 @@
               <line x1="2" y1="12" x2="22" y2="12"></line>
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
             </svg>
-            <a href="/?lang=zh" class="lang-switcher-link active" data-set-lang="zh" aria-current="page">中文</a>
+            <a href="/?lang=zh" class="lang-switcher-link active" data-set-lang="zh" aria-current="page">Chinese</a>
             <a href="/en/?lang=en" class="lang-switcher-link" data-set-lang="en">EN</a>
           </div>
-          <a href="/download" class="btn btn-primary btn-sm js-download-link" id="download-header-link">下载安装包</a>
-          <button class="nav-menu-toggle" id="nav-menu-toggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-links">
+          <a href="/download" class="btn btn-primary btn-sm js-download-link" id="download-header-link">Download安装包</a>
+          <button class="nav-menu-toggle" id="nav-menu-toggle" type="button" aria-label="Open导航菜单" aria-expanded="false" aria-controls="nav-links">
             <span class="menu-bar"></span>
             <span class="menu-bar"></span>
           </button>
@@ -192,14 +192,14 @@
               <span class="highlight-text">优雅重塑，极致冷静。</span>
             </h1>
             <p class="hero-desc animate-slide-up-delay">
-              MacHead 是一款轻量、零依赖的原生桌面工具。它能在逻辑上彻底熄灭内置屏幕以完美实现合盖运行，无需担心发热损坏屏幕，伴随智能电量保护与麦克风隐私锁，让您的闲置 MacBook 重焕新生。
+              MacHead 是一款轻量、零依赖的原生Desktop工具。它能在逻辑上彻底熄灭内置屏幕以完美实现合盖运行，无需担心发热损坏屏幕，伴随智能电量保护与麦克风隐私锁，让您的闲置 MacBook 重焕新生。
             </p>
             <div class="hero-actions animate-slide-up-delay2">
               <a href="/download" class="btn btn-primary btn-lg js-download-link" id="download-hero-link">
                 <svg class="apple-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                   <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.1 16.67C20.08 16.74 19.67 18.11 18.71 19.5M15.97 4.17C16.63 3.37 17.07 2.28 16.95 1C15.98 1.04 14.81 1.65 14.11 2.47C13.5 3.17 12.97 4.28 13.12 5.5C14.2 5.58 15.3 4.97 15.97 4.17Z"></path>
                 </svg>
-                下载 macOS 安装包 (.dmg)
+                Download macOS 安装包 (.dmg)
               </a>
               <a href="https://github.com/ox01024/MacHead/issues" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">
                 反馈社区
@@ -222,7 +222,7 @@
         <div class="container">
           <div class="section-header">
             <h2 class="section-title">专为 MacBook 合盖运行打造的防护守护</h2>
-            <p class="section-subtitle">MacHead 从屏幕功耗、隐私安全和电池寿命等多端出发，确保您的笔记本合盖运行时安全、省电、冷静。</p>
+            <p class="section-subtitle">MacHead 从屏幕功耗、隐私安全和Battery寿命等多端出发，确保您的笔记本合盖运行时安全、省电、冷静。</p>
           </div>
           
           <div class="bento-grid">
@@ -248,11 +248,11 @@
               </div>
               <div class="bento-content">
                 <h3 class="bento-title">物理级静音防监听保护</h3>
-                <p class="bento-desc">只要笔记本进入合盖做服务器的状态，应用会自动在音频输入端将内置麦克风全链路静音。屏蔽任何潜在的声音窃听通道，为您的物理办公和生活空间提供坚实的隐私防线。</p>
+                <p class="bento-desc">只要笔记本进入合盖做服务器的Status，应用会Automatic在音频输入端将内置麦克风全链路静音。屏蔽任何潜在的声音窃听通道，为您的物理办公和生活空间提供坚实的隐私防线。</p>
               </div>
             </div>
             
-            <!-- Bento Box 3: 电池与电量断电守护 -->
+            <!-- Bento Box 3: Battery与电量断电守护 -->
             <div class="bento-card">
               <div class="bento-icon-box text-pink">
                 <svg class="feature-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -260,12 +260,12 @@
                 </svg>
               </div>
               <div class="bento-content">
-                <h3 class="bento-title">智能电池寿命守护</h3>
-                <p class="bento-desc">针对长期处于插电环境的 MacBook 服务器，MacHead 提供智能电池防护。在拔掉电线断电后，它能依据低电量安全保护阈值自动控制系统休眠，彻底避免过度放电造成的电池鼓包损坏。</p>
+                <h3 class="bento-title">智能Battery寿命守护</h3>
+                <p class="bento-desc">针对长期处于插电环境的 MacBook 服务器，MacHead 提供智能Battery防护。在拔掉电线断电后，它能依据低电量安全保护阈值Automatic控制系统休眠，彻底避免过度放电造成的Battery鼓包损坏。</p>
               </div>
             </div>
 
-            <!-- Bento Box 4: 输入设备防误触 -->
+            <!-- Bento Box 4: 输入Device防误触 -->
             <div class="bento-card bento-w2 bento-split">
               <div class="bento-split-left">
                 <div class="bento-icon-box text-indigo">
@@ -275,12 +275,12 @@
                 </div>
                 <div class="bento-content">
                   <h3 class="bento-title">内置键盘与触控板合盖防误触</h3>
-                  <p class="bento-desc">闭合屏幕作为服务器后，内置按键极易产生物理压迫误按。MacHead 会在进入合盖模式时自动屏蔽和忽略内置键盘、触控板的输入信号，同时保持外部连接的独立鼠标和外接键盘不受任何影响。</p>
+                  <p class="bento-desc">闭合屏幕作为服务器后，内置按键极易产生物理压迫误按。MacHead 会在进入合盖模式时Automatic屏蔽和忽略内置键盘、触控板的输入信号，同时保持外部连接的独立鼠标和外接键盘不受任何影响。</p>
                 </div>
               </div>
               <div class="bento-split-right">
                 <div class="bento-screenshot-wrapper">
-                  <img src="/machead_hero_v0.1.14.png" srcset="/machead_hero_v0.1.14_sm.png 512w, /machead_hero_v0.1.14_md.png 1024w, /machead_hero_v0.1.14.png 1360w" sizes="(max-width: 968px) 88vw, 330px" alt="MacHead 偏好设置面板：输入设备防误触选项" class="bento-screenshot" width="1360" height="1224" loading="lazy" decoding="async" />
+                  <img src="/machead_hero_v0.1.14.png" srcset="/machead_hero_v0.1.14_sm.png 512w, /machead_hero_v0.1.14_md.png 1024w, /machead_hero_v0.1.14.png 1360w" sizes="(max-width: 968px) 88vw, 330px" alt="MacHead 偏好设置面板：输入Device防误触选项" class="bento-screenshot" width="1360" height="1224" loading="lazy" decoding="async" />
                 </div>
               </div>
             </div>
@@ -295,7 +295,7 @@
                 </div>
                 <div class="bento-content">
                   <h3 class="bento-title">安全的局域网远程管理控制台</h3>
-                  <p class="bento-desc">内置免配置控制台服务，现已全面升级<strong>安全 Cookie 会话隔离鉴权</strong>。在同局域网的手机或电脑浏览器上输入网址，通过精美的毛玻璃登录页输入密码即可安全访问，远程实时监控 CPU 物理核心温度、真实 RAM 分配、GPU 显存负载与网速曲线，并进行各项合盖模式的开关与调节。</p>
+                  <p class="bento-desc">内置免配置控制台服务，现已全面升级<strong>安全 Cookie 会话隔离鉴权</strong>。在同局域网的手机或电脑浏览器上输入网址，通过精美的毛玻璃Log in页输入密码即可安全访问，远程实时监控 CPU 物理核心温度、真实 RAM 分配、GPU 显存负载与网速曲线，并进行各项合盖模式的开关与调节。</p>
                 </div>
               </div>
               <div class="bento-split-right">
@@ -314,7 +314,7 @@
               </div>
               <div class="bento-content">
                 <h3 class="bento-title">显示器智能自适应守护</h3>
-                <p class="bento-desc">自动检测外接屏幕物理插拔。当您断开所有外接屏时，MacHead 会瞬间自动亮起并连回内置屏幕，防止发生黑屏锁死的尴尬；而插回外接显示器时，它又能秒级恢复低发热合盖状态。</p>
+                <p class="bento-desc">Automatic检测外接屏幕物理插拔。当您Disconnect所有外接屏时，MacHead 会瞬间Automatic亮起并连回内置屏幕，防止发生黑屏锁死的尴尬；而插回外接显示器时，它又能秒级恢复低发热合盖Status。</p>
               </div>
             </div>
 
@@ -327,7 +327,7 @@
               </div>
               <div class="bento-content">
                 <h3 class="bento-title">无缝接入自建服务器监控集群</h3>
-                <p class="bento-desc">原生集成了 FRP 内网穿透 (frpc)、哪吒监控 (Nezha) 与 ServerStatus 客户端。只需填入面板地址，即可将合盖运行的 MacBook 接入自建云端看板，实时同步 CPU、内存与网速曲线，搭配直观的状态指示与智能诊断，让设备在线率一目了然。</p>
+                <p class="bento-desc">原生集成了 FRP Network Tunneling (frpc)、哪吒监控 (Nezha) 与 ServerStatus 客户端。只需填入面板地址，即可将合盖运行的 MacBook 接入自建云端看板，实时同步 CPU、内存与网速曲线，搭配直观的Status指示与智能诊断，让DeviceOnline率一目了然。</p>
               </div>
             </div>
           </div>
@@ -346,7 +346,7 @@
             <div class="playground-tabs">
               <button class="tab-btn active" data-tab="cli">
                 <span class="tab-dot dot-green"></span>
-                MacHead CLI 终端交互
+                MacHead CLI Terminal交互
               </button>
               <button class="tab-btn" data-tab="web">
                 <span class="tab-dot dot-purple"></span>
@@ -368,7 +368,7 @@
                   </div>
                   <div class="terminal-body" id="cli-console">
                     <div class="terminal-line"><span class="prompt">$</span> <span class="input-cmd">machead status</span></div>
-                    <div class="terminal-output">运行模式: 正常显示 (内置屏幕已点亮)<br/>Web 控制台: 运行中 (http://192.168.100.131:8080)<br/>合盖防休眠: 未启用<br/>当前电源: 交流电源 (电池 100%)</div>
+                    <div class="terminal-output">Mode: Normal显示 (内置屏幕已点亮)<br/>Web 控制台: 运行中 (http://192.168.100.131:8080)<br/>合盖防休眠: Not enabled<br/>当前电源: 交流电源 (Battery 100%)</div>
                     <div class="terminal-line"><span class="prompt">$</span> <span class="cursor-blink">_</span></div>
                   </div>
                   <div class="terminal-footer">
@@ -400,8 +400,8 @@
                     <!-- 1. Login Simulator Screen -->
                     <div id="web-mockup-login" class="web-mockup-login" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 20px; text-align: center;">
                       <span style="font-size: 32px; font-family: var(--font-serif); margin-bottom: 8px;"></span>
-                      <h4 style="font-size: 16px; font-weight: 600; margin: 0 0 6px 0; font-family: var(--font-sans); color: var(--color-text-main);">MacHead 远程控制台</h4>
-                      <p style="font-size: 12px; color: var(--color-text-muted); margin: 0 0 20px 0;">请输入安全密码以进入面板</p>
+                      <h4 style="font-size: 16px; font-weight: 600; margin: 0 0 6px 0; font-family: var(--font-sans); color: var(--color-text-main);">MacHead Remote Console</h4>
+                      <p style="font-size: 12px; color: var(--color-text-muted); margin: 0 0 20px 0;">Enter the security password to access the panel</p>
                       
                       <div id="web-login-error" style="display: none; padding: 8px 12px; border-radius: 6px; font-size: 11px; color: #ff453a; background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.2); margin-bottom: 16px; width: 100%; max-width: 240px; text-align: left;">
                         密码错误，请重新输入
@@ -409,10 +409,10 @@
                       
                       <form id="web-login-form" style="width: 100%; max-width: 240px; display: flex; flex-direction: column; gap: 12px;">
                         <div style="text-align: left;">
-                          <label style="font-size: 10px; font-weight: 500; color: var(--color-text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">控制台密码</label>
-                          <input type="password" id="web-login-pass" placeholder="请输入密码 (如: admin)" style="width: 100%; box-sizing: border-box; background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: 6px; padding: 10px 14px; font-size: 13px; color: var(--color-text-main); outline: none; transition: border-color 0.2s;" required>
+                          <label style="font-size: 10px; font-weight: 500; color: var(--color-text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Console password</label>
+                          <input type="password" id="web-login-pass" placeholder="Enter password (如: admin)" style="width: 100%; box-sizing: border-box; background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: 6px; padding: 10px 14px; font-size: 13px; color: var(--color-text-main); outline: none; transition: border-color 0.2s;" required>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; padding: 10px; margin-top: 4px; font-size: 12.5px; border-radius: 6px; font-weight: 600;">登录</button>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; padding: 10px; margin-top: 4px; font-size: 12.5px; border-radius: 6px; font-weight: 600;">Log in</button>
                       </form>
                     </div>
 
@@ -422,15 +422,15 @@
                       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; row-gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; width: 100%;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <span style="font-size: 20px; font-family: var(--font-serif); color: var(--color-text-main);"></span>
-                          <h3 style="font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--color-text-main); margin: 0;">MacHead 远程控制台</h3>
+                          <h3 style="font-family: var(--font-serif); font-size: 15px; font-weight: 400; color: var(--color-text-main); margin: 0;">MacHead Remote Console</h3>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px;">
                           <button class="cli-cmd-btn" id="web-mockup-theme-toggle" style="padding: 4px 8px; font-size: 10px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-bg-card); color: var(--color-text-main); cursor: pointer; font-family: var(--font-sans);">
-                            深色模式
+                            Dark mode
                           </button>
                           <button class="cli-cmd-btn" id="web-mockup-logout" style="padding: 4px 8px; font-size: 10px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-bg-card); color: var(--color-text-main); cursor: pointer; display: flex; align-items: center; gap: 3px; font-family: var(--font-sans);">
                             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                            退出登录
+                            Log out
                           </button>
                         </div>
                       </div>
@@ -447,7 +447,7 @@
                       <div class="web-dash-card" style="margin-bottom: 16px; padding: 16px; width: 100%;">
                         <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main); margin-bottom: 12px; display: flex; justify-content: space-between;">
                           <span>系统硬件负载</span>
-                          <span style="font-size: 9.5px; color: var(--color-text-muted);" id="web-hardware-peaks">峰值 - CPU: 28% | RAM: 16%</span>
+                          <span style="font-size: 9.5px; color: var(--color-text-muted);" id="web-hardware-peaks">Peak - CPU: 28% | RAM: 16%</span>
                         </div>
                         <div class="gauge-container" style="display: flex; justify-content: space-around; gap: 16px; width: 100%;">
                           
@@ -458,8 +458,8 @@
                               <circle class="progress-ring__circle" id="mock-cpu-circle" stroke="#42b883" stroke-width="4" fill="transparent" r="28" cx="40" cy="40" style="stroke-dasharray: 175.9 175.9; stroke-dashoffset: 126.6; transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%;"/>
                               <text x="40" y="45" text-anchor="middle" style="font-family: var(--font-sans); font-size: 12px; font-weight: 500; fill: var(--color-text-main);" id="web-cpu-val">28%</text>
                             </svg>
-                            <div class="gauge-label" style="font-size: 11px; color: var(--color-text-muted);">CPU 占用率</div>
-                            <div style="font-size: 9px; color: var(--color-text-muted); margin-top: 2px;" id="web-cpu-temp">温度: -- °C</div>
+                            <div class="gauge-label" style="font-size: 11px; color: var(--color-text-muted);">CPU usage</div>
+                            <div style="font-size: 9px; color: var(--color-text-muted); margin-top: 2px;" id="web-cpu-temp">Temperature: -- °C</div>
                             <!-- Sparkline Graph -->
                             <div class="web-sparkline-container" style="width: 100%; height: 30px; margin-top: 8px;">
                               <svg width="100%" height="100%" viewBox="0 0 160 30" preserveAspectRatio="none">
@@ -476,8 +476,8 @@
                               <circle class="progress-ring__circle" id="mock-ram-circle" stroke="#e0a96d" stroke-width="4" fill="transparent" r="28" cx="40" cy="40" style="stroke-dasharray: 175.9 175.9; stroke-dashoffset: 147.7; transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%;"/>
                               <text x="40" y="45" text-anchor="middle" style="font-family: var(--font-sans); font-size: 12px; font-weight: 500; fill: var(--color-text-main);" id="web-ram-val">16%</text>
                             </svg>
-                            <div class="gauge-label" style="font-size: 11px; color: var(--color-text-muted);">内存占用</div>
-                            <div style="font-size: 9px; color: var(--color-text-muted); margin-top: 2px;" id="web-ram-details">已用: -- GB / -- GB</div>
+                            <div class="gauge-label" style="font-size: 11px; color: var(--color-text-muted);">Memory usage</div>
+                            <div style="font-size: 9px; color: var(--color-text-muted); margin-top: 2px;" id="web-ram-details">Used: -- GB / -- GB</div>
                             <!-- Sparkline Graph -->
                             <div class="web-sparkline-container" style="width: 100%; height: 30px; margin-top: 8px;">
                               <svg width="100%" height="100%" viewBox="0 0 160 30" preserveAspectRatio="none">
@@ -494,8 +494,8 @@
                               <circle class="progress-ring__circle" id="mock-gpu-circle" stroke="#af52de" stroke-width="4" fill="transparent" r="28" cx="40" cy="40" style="stroke-dasharray: 175.9 175.9; stroke-dashoffset: 175.9; transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%;"/>
                               <text x="40" y="45" text-anchor="middle" style="font-family: var(--font-sans); font-size: 12px; font-weight: 500; fill: var(--color-text-main);" id="web-gpu-val">0%</text>
                             </svg>
-                            <div class="gauge-label" style="font-size: 11px; color: var(--color-text-muted);">GPU 占用率</div>
-                            <div style="font-size: 9px; color: var(--color-text-muted); margin-top: 2px;" id="web-gpu-vram">显存: -- GB / -- GB</div>
+                            <div class="gauge-label" style="font-size: 11px; color: var(--color-text-muted);">GPU usage</div>
+                            <div style="font-size: 9px; color: var(--color-text-muted); margin-top: 2px;" id="web-gpu-vram">VRAM: -- GB / -- GB</div>
                             <!-- Sparkline Graph -->
                             <div class="web-sparkline-container" style="width: 100%; height: 30px; margin-top: 8px;">
                               <svg width="100%" height="100%" viewBox="0 0 160 30" preserveAspectRatio="none">
@@ -510,10 +510,10 @@
                       <!-- Network throughput -->
                       <div class="web-dash-card" style="margin-bottom: 16px; padding: 14px; width: 100%;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                          <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main);">实时网络吞吐量</div>
+                          <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main);">Live network throughput</div>
                           <div style="display: flex; gap: 8px; font-size: 9.5px; color: var(--color-text-muted);">
-                            <span id="web-rx-peak">↓ 峰值: 0 B/s</span>
-                            <span id="web-tx-peak">↑ 峰值: 0 B/s</span>
+                            <span id="web-rx-peak">↓ Peak: 0 B/s</span>
+                            <span id="web-tx-peak">↑ Peak: 0 B/s</span>
                           </div>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 6px;">
@@ -558,16 +558,16 @@
                               <td class="label">系统热阻压力</td>
                               <td class="val" style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
                                 <span style="display: inline-block; width: 5px; height: 5px; background: #42b883; border-radius: 50%;" id="web-thermal-dot"></span>
-                                <span id="web-thermal-val">正常</span>
+                                <span id="web-thermal-val">Normal</span>
                               </td>
                             </tr>
                             <tr>
-                              <td class="label">电池实时温度</td>
+                              <td class="label">Battery实时温度</td>
                               <td class="val" id="web-battery-temp">36.5 °C</td>
                             </tr>
                             <tr>
                               <td class="label">合盖与外接屏</td>
-                              <td class="val" id="web-lid-val">💻 合盖状态</td>
+                              <td class="val" id="web-lid-val">💻 合盖Status</td>
                             </tr>
                           </table>
                         </div>
@@ -576,7 +576,7 @@
                       <div class="web-grid" style="margin-top: 14px;">
                         <!-- Mode Card -->
                         <div class="web-dash-card">
-                          <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main); margin-bottom: 6px;">系统运行状态</div>
+                          <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main); margin-bottom: 6px;">系统运行Status</div>
                           <div class="card-value" style="font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 6px; margin-bottom: 0;" id="web-mode-val">
                             <span class="status-dot active" style="background-color: #42b883; width: 6px; height: 6px;" id="web-mode-dot"></span>
                             <span id="web-mode-text">Headless 激活</span>
@@ -588,7 +588,7 @@
                         
                         <!-- Battery Card -->
                         <div class="web-dash-card">
-                          <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main); margin-bottom: 6px;">电池与电源状态</div>
+                          <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main); margin-bottom: 6px;">Battery & power status</div>
                           <table class="web-meta-table">
                             <tr>
                               <td class="label">剩余电量 / 充电</td>
@@ -598,11 +598,11 @@
                               </td>
                             </tr>
                             <tr>
-                              <td class="label">电池健康度</td>
+                              <td class="label">Battery健康度</td>
                               <td class="val" id="web-battery-health">94%</td>
                             </tr>
                             <tr>
-                              <td class="label">电池循环次数</td>
+                              <td class="label">BatteryCycle count</td>
                               <td class="val" id="web-battery-cycles">48 次</td>
                             </tr>
                             <tr>
@@ -615,12 +615,12 @@
                       
                       <!-- Controls Card -->
                       <div class="web-dash-card" style="margin-top: 16px; padding: 16px;">
-                        <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main); margin-bottom: 12px;">设备远程控制</div>
+                        <div style="font-family: var(--font-serif); font-size: 13.5px; color: var(--color-text-main); margin-bottom: 12px;">Device远程控制</div>
                         
                         <div class="web-toggle-row">
                           <div>
                             <div class="control-label" style="font-weight: 500; font-size: 11.5px;">MacBook Headless 模式</div>
-                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">关闭内置屏幕以模拟独立 Mac Studio 行为。</div>
+                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">Close内置屏幕以模拟独立 Mac Studio 行为。</div>
                           </div>
                           <label class="switch-mini">
                             <input type="checkbox" id="web-headless-toggle" checked>
@@ -642,7 +642,7 @@
                         <div class="web-toggle-row">
                           <div>
                             <div class="control-label" style="font-weight: 500; font-size: 11.5px;">禁用内置触控板</div>
-                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">检测到外接鼠标时，自动关闭触控板输入以防误触。</div>
+                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">Detected外接鼠标时，AutomaticClose触控板输入以防误触。</div>
                           </div>
                           <label class="switch-mini">
                             <input type="checkbox" id="web-trackpad-toggle">
@@ -652,8 +652,8 @@
                         
                         <div class="web-toggle-row">
                           <div>
-                            <div class="control-label" style="font-weight: 500; font-size: 11.5px;">无头模式下禁用键盘和触控板</div>
-                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">进入无头模式后，自动屏蔽内置键盘按键与内置触控板输入以防误触。</div>
+                            <div class="control-label" style="font-weight: 500; font-size: 11.5px;">Headless下禁用键盘和触控板</div>
+                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">进入Headless后，Automatic屏蔽内置键盘按键与内置触控板输入以防误触。</div>
                           </div>
                           <label class="switch-mini">
                             <input type="checkbox" id="web-kbd-toggle" checked>
@@ -664,7 +664,7 @@
                         <div class="web-toggle-row">
                           <div>
                             <div class="control-label" style="font-weight: 500; font-size: 11.5px;">静音内置麦克风</div>
-                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">保护物理隐私，进入无头模式时静音系统麦克风。</div>
+                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">保护物理隐私，进入Headless时静音系统麦克风。</div>
                           </div>
                           <label class="switch-mini">
                             <input type="checkbox" id="web-mic-toggle">
@@ -674,8 +674,8 @@
 
                         <div class="web-toggle-row">
                           <div>
-                            <div class="control-label" style="font-weight: 500; font-size: 11.5px;">断开外接显示器时自动退出</div>
-                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">检测到所有外接显示器断开时，自动恢复内置屏幕防黑屏。</div>
+                            <div class="control-label" style="font-weight: 500; font-size: 11.5px;">Disconnect外接显示器时AutomaticQuit</div>
+                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">Detected所有外接显示器Disconnect时，Automatic恢复内置屏幕防黑屏。</div>
                           </div>
                           <label class="switch-mini">
                             <input type="checkbox" id="web-exit-disconnect-toggle" checked>
@@ -685,8 +685,8 @@
 
                         <div class="web-toggle-row">
                           <div>
-                            <div class="control-label" style="font-weight: 500; font-size: 11.5px;">接入外接显示器时自动恢复</div>
-                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">有外接显示器重新接入时，自动重入 Headless 并屏蔽内置屏。</div>
+                            <div class="control-label" style="font-weight: 500; font-size: 11.5px;">接入外接显示器时Automatic恢复</div>
+                            <div class="control-desc" style="font-size: 9.5px; color: var(--color-text-muted); margin-top: 2px;">有外接显示器重新接入时，Automatic重入 Headless 并屏蔽内置屏。</div>
                           </div>
                           <label class="switch-mini">
                             <input type="checkbox" id="web-restore-connect-toggle" checked>
@@ -714,20 +714,20 @@
           <div class="install-steps">
             <div class="step-card">
               <div class="step-num">01</div>
-              <h3 class="step-title">下载并安装 MacHead</h3>
-              <p class="step-desc">下载双架构通用版的安装包文件，将 MacHead 的猫咪图标直接拖入您的应用程序目录中即可完成基础部署。</p>
+              <h3 class="step-title">Download并安装 MacHead</h3>
+              <p class="step-desc">Download双架构通用版的安装包Files，将 MacHead 的猫咪图标直接拖入您的Applications目录中即可完成基础部署。</p>
             </div>
             
             <div class="step-card">
               <div class="step-num">02</div>
               <h3 class="step-title">双击应用启动守护</h3>
-              <p class="step-desc">双击运行程序。您将在 macOS 顶部菜单栏右侧看到一个精致的猫咪状态栏图标，通过下拉菜单可直接开启、关闭 Headless 守护或调整参数设置。</p>
+              <p class="step-desc">双击运行程序。您将在 macOS 顶部菜单栏右侧看到一个精致的猫咪Status栏图标，通过下拉菜单可直接开启、Close Headless 守护或调整参数设置。</p>
             </div>
             
             <div class="step-card">
               <div class="step-num">03</div>
               <h3 class="step-title">配置系统防误触授权</h3>
-              <p class="step-desc">如果您希望合盖成为服务器后自动无视并屏蔽一切物理键盘和触控板的误触误按，请按照软件首次运行时的指引，开启系统授权即可。</p>
+              <p class="step-desc">如果您希望合盖成为服务器后Automatic无视并屏蔽一切物理键盘和触控板的误触误按，请按照软件首次运行时的指引，开启系统授权即可。</p>
             </div>
           </div>
         </div>
@@ -752,11 +752,11 @@
                 <span class="changelog-version-tag">v0.1.27</span>
               </div>
               <div class="changelog-body">
-                <h3 class="changelog-title">MacHead Cloud 云端控制台、三轨 E2EE 远程终端与全链路安全加固</h3>
+                <h3 class="changelog-title">MacHead Cloud Web Console、三轨 E2EE 远程Terminal与全链路安全加固</h3>
                 <ul class="changelog-bullets">
                   <li>新增 MacHead Cloud 云端远程控制台 (dash.headlessmac.com)，支持 GitHub / Google 账号 PKCE 安全绑定与免码一键直连。</li>
-                  <li>新增 Happy Eyeballs 三轨自适应传输引擎：本机 Loopback 零延迟直连、局域网 WebRTC P2P 直连、跨网 Tailcat WireGuard E2EE 端到端加密隧道。</li>
-                  <li>新增多标签 Web 远程终端、远程文件管理器与远程硬件遥测看板。</li>
+                  <li>新增 Happy Eyeballs 三轨自适应传输引擎：本机 Loopback 零延迟直连、局域网 WebRTC P2P direct、跨网 Tailcat WireGuard E2EE 端到端加密隧道。</li>
+                  <li>新增多标签 Web 远程Terminal、远程Files器与远程硬件遥测看板。</li>
                 </ul>
               </div>
             </article>
@@ -767,10 +767,10 @@
                 <span class="changelog-version-tag">v0.1.25</span>
               </div>
               <div class="changelog-body">
-                <h3 class="changelog-title">重启或退出后开机自动进入无头模式修复</h3>
+                <h3 class="changelog-title">重启或Quit后开机Automatic进入Headless修复</h3>
                 <ul class="changelog-bullets">
-                  <li>修复重启系统或重新打开应用后无法自动恢复无头模式屏蔽内屏的问题。</li>
-                  <li>优化开机自启与显示器状态接管时序。</li>
+                  <li>修复重启系统或重新Open应用后无法Automatic恢复Headless屏蔽内屏的问题。</li>
+                  <li>优化开机自启与显示器Status接管时序。</li>
                 </ul>
               </div>
             </article>
@@ -785,8 +785,8 @@
             <h2 class="cta-title">重塑您的 MacBook，即刻开始</h2>
             <p class="cta-desc">MacHead 个人版完全免费，我们坚守全本地化运行，绝不收集或向外传输您的任何使用与隐私数据。</p>
             <div class="cta-actions">
-              <a href="/download" class="btn btn-primary btn-lg js-download-link" id="download-cta-link">下载 macOS Universal DMG v0.1.27</a>
-              <a href="https://github.com/ox01024/MacHead/issues" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">前往 GitHub 提交反馈</a>
+              <a href="/download" class="btn btn-primary btn-lg js-download-link" id="download-cta-link">Download macOS Universal DMG v0.1.27</a>
+              <a href="https://github.com/ox01024/MacHead/issues" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">Go GitHub 提交反馈</a>
             </div>
           </div>
         </div>
@@ -803,27 +803,27 @@
         <div class="faq-list">
           <details class="faq-item" open>
             <summary class="faq-question">碎屏或内屏损坏的 MacBook 还能用 MacHead 当服务器吗？</summary>
-            <p class="faq-answer">完全可以！MacHead 通过 macOS 底层 SkyLight 框架在逻辑层彻底关闭内置屏幕，合盖即可安静、低温地作为无头服务器常年运行，完全不依赖物理内屏。首次安装配置只需临时借用外接显示器或通过 macOS「屏幕共享」即可完成。</p>
+            <p class="faq-answer">完全可以！MacHead 通过 macOS 底层 SkyLight 框架在逻辑层彻底Close内置屏幕，合盖即可安静、低温地作为无头服务器常年运行，完全不依赖物理内屏。首次安装配置只需临时借用外接显示器或通过 macOS「屏幕共享」即可完成。</p>
           </details>
           <details class="faq-item">
-            <summary class="faq-question">MacHead 是如何彻底关闭内置屏幕的？与调低亮度有什么区别？</summary>
-            <p class="faq-answer">单纯把屏幕亮度调到最低时，面板与显卡输出仍在持续工作并产生热量。MacHead 调用 Apple 原生 SkyLight 框架接口在系统级切断内置显示器信号与背光供电，彻底消除合盖状态下的内屏积热与老化泛黄风险。</p>
+            <summary class="faq-question">MacHead 是如何彻底Close内置屏幕的？与调低亮度有什么区别？</summary>
+            <p class="faq-answer">单纯把屏幕亮度调到最低时，面板与显卡输出仍在持续工作并产生热量。MacHead 调用 Apple 原生 SkyLight 框架接口在系统级切断内置显示器信号与背光供电，彻底消除合盖Status下的内屏积热与老化泛黄风险。</p>
           </details>
           <details class="faq-item">
-            <summary class="faq-question">MacHead 和 macOS 原生合盖模式（Clamshell Mode）及 caffeinate 有什么区别？</summary>
-            <p class="faq-answer">macOS 原生合盖模式强制要求连接外接显示器与电源才能工作；而 caffeinate 或 Amphetamine 仅阻止空闲休眠，无法单独切断内屏供电。MacHead 提供完整的一体化无头工作站方案：免外屏合盖运行、内屏逻辑断电、麦克风自动静音、内置键鼠防误触、防鼓包限充以及端到端加密远程终端。</p>
+            <summary class="faq-question">MacHead 和 macOS 原生合盖模式（Clamshell Mode)及 caffeinate 有什么区别？</summary>
+            <p class="faq-answer">macOS 原生合盖模式强制要求连接外接显示器与电源才能工作；而 caffeinate 或 Amphetamine 仅阻止空闲休眠，无法单独切断内屏供电。MacHead 提供完整的一体化无头工作站方案：免外屏合盖运行、内屏逻辑断电、麦克风Automatic静音、内置键鼠防误触、防鼓包限充以及端到端加密远程Terminal。</p>
           </details>
           <details class="faq-item">
-            <summary class="faq-question">长期合盖运行会不会导致机器过热或电池鼓包？</summary>
-            <p class="faq-answer">MacHead 内置全景电池守护与防鼓包充电上限（支持 50%～90% 限充调节），长期插电可有效延缓电池老化；当意外断电且电量低于安全阈值时会自动恢复系统休眠防止过放，并支持 CPU/电池温度实时监测与 Bark / Telegram 告警推送。</p>
+            <summary class="faq-question">长期合盖运行会不会导致机器过热或Battery鼓包？</summary>
+            <p class="faq-answer">MacHead 内置全景Battery protection与防鼓包充电上限（支持 50%～90% 限充调节)，长期插电可有效延缓Battery老化；当意外断电且电量低于安全阈值时会Automatic恢复系统休眠防止过放，并支持 CPU/Battery温度实时监测与 Bark / Telegram 告警推送。</p>
           </details>
           <details class="faq-item">
             <summary class="faq-question">支持 Apple Silicon (M1/M2/M3/M4) 和 Intel 芯片的 MacBook 吗？</summary>
-            <p class="faq-answer">支持。MacHead 采用 Universal 通用二进制打包，原生支持 Apple Silicon（M1 / M2 / M3 / M4 全系列）与 Intel 架构的 MacBook，系统要求为 macOS Monterey (12.0) 及更高版本。</p>
+            <p class="faq-answer">支持。MacHead 采用 Universal 通用二进制打包，原生支持 Apple Silicon（M1 / M2 / M3 / M4 全系列)与 Intel 架构的 MacBook，系统要求为 macOS Monterey (12.0) 及更高版本。</p>
           </details>
           <details class="faq-item">
             <summary class="faq-question">MacHead 收费吗？是否安全可靠？</summary>
-            <p class="faq-answer">MacHead 完全免费并以 Apache-2.0 开源协议发布。云端远程终端采用基于 WireGuard 的端到端加密（E2EE）与原生口令门禁保护，匿名统计开关亦可随时在偏好设置中一键关闭。</p>
+            <p class="faq-answer">MacHead 完全免费并以 Apache-2.0 开源协议发布。云端远程Terminal采用基于 WireGuard 的端到端加密（E2EE)与原生口令门禁保护，匿名统计开关亦可随时在偏好设置中一键Close。</p>
           </details>
         </div>
       </div>
@@ -841,27 +841,27 @@
         </div>
         <div class="footer-right">
           <div class="footer-links-group">
-            <span class="group-title">产品与服务</span>
-            <a href="https://dash.headlessmac.com" target="_blank" rel="noopener">MacHead Cloud 云端控制台</a>
+            <span class="group-title">Products & Services</span>
+            <a href="https://dash.headlessmac.com" target="_blank" rel="noopener">MacHead Cloud Web Console</a>
             <a href="/changelog">版本更新日志</a>
-            <a href="/download" class="js-download-link">下载 macOS 安装包</a>
+            <a href="/download" class="js-download-link">Download macOS 安装包</a>
           </div>
           <div class="footer-links-group">
-            <span class="group-title">开源与社区</span>
+            <span class="group-title">Open Source & Community</span>
             <a href="https://github.com/ox01024/MacHead" target="_blank" rel="noopener">GitHub 源码仓库</a>
             <a href="https://github.com/ox01024/MacHead/issues" target="_blank" rel="noopener">问题反馈与功能建议</a>
             <a href="https://github.com/ox01024/MacHead/discussions" target="_blank" rel="noopener">社区交流讨论区</a>
           </div>
           <div class="footer-links-group">
-            <span class="group-title">文档与语言</span>
-            <a href="/guides/broken-screen-macbook-server/">碎屏 MacBook 改无头服务器指南</a>
+            <span class="group-title">Docs & Language</span>
+            <a href="/guides/broken-screen-macbook-server/">Broken-Screen MacBook to Headless Server Guide</a>
             <a href="/en/?lang=en" data-set-lang="en">English (International)</a>
           </div>
         </div>
       </div>
       <div class="container footer-bottom">
-        <p>&copy; 2026 MacHead Project. 保留所有权利。</p>
-        <p>声明：macOS 与 Studio Display 为 Apple Inc. 在美国及其他国家/地区的注册商标。</p>
+        <p>&copy; 2026 MacHead Project. All rights reserved。</p>
+        <p>Disclaimer: macOS and Studio Display are registered trademarks of Apple Inc. in the United States and other countries.</p>
       </div>
     </footer>
     <script type="module" src="/src/main.js"></script>

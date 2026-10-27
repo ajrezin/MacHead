@@ -13,7 +13,7 @@ final class DisplayManager {
 
     private let setMode: CGSConfigureDisplayEnabledFunc?
 
-    /// 内存中的内置屏 ID 缓存，避免每次查询都写 UserDefaults
+    /// Cached built-in display ID in memory to avoid writing UserDefaults on every query
     private var cachedBuiltInID: CGDirectDisplayID?
 
     private init() {
@@ -22,20 +22,20 @@ final class DisplayManager {
             RTLD_LAZY
         ) else {
             setMode = nil
-            NSLog("MacHead: 无法加载 SkyLight 框架")
+            NSLog("MacHead: Failed to load the SkyLight framework")
             return
         }
 
         let sym = dlsym(handle, "CGSConfigureDisplayEnabled")
         setMode = sym.map { unsafeBitCast($0, to: CGSConfigureDisplayEnabledFunc.self) }
         if setMode == nil {
-            NSLog("MacHead: 无法在 SkyLight 中找到 CGSConfigureDisplayEnabled 符号")
+            NSLog("MacHead: CGSConfigureDisplayEnabled symbol not found in SkyLight")
         }
     }
 
-    // MARK: - 显示器域查询原语
+    // MARK: - Display-domain query primitives
 
-    /// 单次枚举当前在线显示器列表（CGGetOnlineDisplayList 的 count/fill 两段式调用）
+    /// Enumerate the current list of online displays in one pass (CGGetOnlineDisplayList count/fill pattern)
     func onlineDisplayIDs() -> [CGDirectDisplayID]? {
         var count: UInt32 = 0
         guard CGGetOnlineDisplayList(0, nil, &count) == .success else { return nil }
@@ -44,7 +44,7 @@ final class DisplayManager {
         return displays
     }
 
-    /// 检查是否为虚拟/软件显示屏（如系统在无物理显示器时创建的 unkn virt，或远程工具生成的虚拟屏）
+    /// Check whether a display is virtual/software-generated (e.g., unkn virt created when no physical display is present, or a remote tool creates a virtual display)
     static func isVirtualDisplay(_ displayID: CGDirectDisplayID) -> Bool {
         let vendor = CGDisplayVendorNumber(displayID)
         let model = CGDisplayModelNumber(displayID)
@@ -52,7 +52,7 @@ final class DisplayManager {
         return vendor == 0x756e6b6e || model == 0x76697274 || vendor == 0xF0F0 || model == 0xF0F0
     }
 
-    /// 获取当前或缓存的内置显示器 ID；返回 nil 表示既不在线也无缓存
+    /// Get the current or cached built-in display ID; returns nil if it is neither online nor cached
     var builtInDisplayID: CGDirectDisplayID? {
         if let id = onlineDisplayIDs()?.first(where: { CGDisplayIsBuiltin($0) != 0 }) {
             persistBuiltInID(id)
@@ -71,7 +71,7 @@ final class DisplayManager {
         return nil
     }
 
-    /// 检查内置显示器是否当前在线（通过系统在线显示器权威列表验证，在线时顺带刷新缓存）
+    /// Check whether the built-in display is currently online (verify using the system online display list and refresh the cache while online)
     var isBuiltInOnline: Bool {
         guard let online = onlineDisplayIDs(),
               let id = online.first(where: { CGDisplayIsBuiltin($0) != 0 }) else { return false }
@@ -85,40 +85,40 @@ final class DisplayManager {
         UserDefaults.standard.set(Int(id), forKey: "BuiltInDisplayID")
     }
 
-    // MARK: - 内置屏断开/恢复
+    // MARK: - Built-in display power-off / restore
 
-    /// 断开内置显示器（已离线时为幂等空操作）
+    /// Disconnect the built-in display (no-op when it is already offline)
     func disconnectBuiltIn(retriesRemaining: Int = 5) {
         guard HeadlessModeController.shared.isHeadlessModeEnabled else { return }
 
         guard let setMode = setMode else {
-            NSLog("MacHead: CGSConfigureDisplayEnabled API 不可用")
+            NSLog("MacHead: CGSConfigureDisplayEnabled API is unavailable")
             return
         }
 
         guard let id = onlineDisplayIDs()?.first(where: { CGDisplayIsBuiltin($0) != 0 }) else {
-            NSLog("MacHead: 内置显示屏不在线，无需重复断开")
+            NSLog("MacHead: Built-in display is not online; no repeat disconnect needed")
             return
         }
         persistBuiltInID(id)
 
-        NSLog("MacHead: 正在断开内置显示屏 ID: %d (剩余重试: %d)", id, retriesRemaining)
+        NSLog("MacHead: Disconnecting built-in display ID: %d (retries remaining: %d)", id, retriesRemaining)
         var configRef: CGDisplayConfigRef? = nil
         let beginErr = CGBeginDisplayConfiguration(&configRef)
         if beginErr == .success {
             let configureErr = setMode(configRef, id, false)
             if configureErr == 0 {
                 let completeErr = CGCompleteDisplayConfiguration(configRef, .permanently)
-                NSLog("MacHead: 断开内置屏结果 - 设定: %d, 提交: %d", configureErr, completeErr.rawValue)
+                NSLog("MacHead: Built-in display disconnect result - configured: %d, committed: %d", configureErr, completeErr.rawValue)
                 if completeErr == .success { return }
                 CGCancelDisplayConfiguration(configRef)
             } else {
-                NSLog("MacHead: 断开内置屏设定失败: %d", configureErr)
+                NSLog("MacHead: Built-in display disconnect configuration failed: %d", configureErr)
                 CGCancelDisplayConfiguration(configRef)
             }
-            NSLog("MacHead: 提交断开显示配置未成功，将在 0.2 秒后重试...")
+            NSLog("MacHead: Disabling display configuration was not committed; retrying in 0.2 seconds...")
         } else {
-            NSLog("MacHead: CGBeginDisplayConfiguration 失败: %d", beginErr.rawValue)
+            NSLog("MacHead: CGBeginDisplayConfiguration failed: %d", beginErr.rawValue)
         }
 
         guard retriesRemaining > 0 else { return }
@@ -127,48 +127,48 @@ final class DisplayManager {
         }
     }
 
-    /// 重新连接内置显示器
+    /// Reconnect the built-in display
     func reconnectBuiltIn(retriesRemaining: Int = 5) {
         guard !HeadlessModeController.shared.isHeadlessModeEnabled else { return }
 
-        // 如果内屏已在权威在线列表中，无需重复开启
+        // If the built-in display is already in the authoritative online list，no need to re-enable it
         if let online = onlineDisplayIDs(),
            let id = online.first(where: { CGDisplayIsBuiltin($0) != 0 }) {
-            NSLog("MacHead: 内置显示屏 ID: %d 已处于在线状态", id)
+            NSLog("MacHead: Built-in display ID: %d is already online", id)
             return
         }
 
         guard let setMode = setMode else {
-            NSLog("MacHead: CGSConfigureDisplayEnabled API 不可用")
+            NSLog("MacHead: CGSConfigureDisplayEnabled API is unavailable")
             return
         }
 
-        // 内屏离线时使用缓存 ID；无缓存时按 Apple Silicon 惯例以 ID 1 兜底（仅此恢复路径需要猜测）
+        // When the built-in display is offline, use the cached ID；If no cache is available, fall back to Apple Silicon convention and use ID 1（only this restore path requires a guess)
         let id: CGDirectDisplayID
         if let cached = builtInDisplayID {
             id = cached
         } else {
-            NSLog("MacHead: 本地无内置屏缓存 ID，以默认 ID 1 兜底尝试恢复")
+            NSLog("MacHead: No cached built-in display ID was found; falling back to default ID 1 for recovery")
             id = CGDirectDisplayID(1)
         }
 
-        NSLog("MacHead: 正在重新连接内置显示屏 ID: %d (剩余重试: %d)", id, retriesRemaining)
+        NSLog("MacHead: Reconnecting built-in display ID: %d (retries remaining: %d)", id, retriesRemaining)
         var configRef: CGDisplayConfigRef? = nil
         let beginErr = CGBeginDisplayConfiguration(&configRef)
         if beginErr == .success {
             let configureErr = setMode(configRef, id, true)
             if configureErr == 0 {
                 let completeErr = CGCompleteDisplayConfiguration(configRef, .permanently)
-                NSLog("MacHead: 启用内置屏结果 - 设定: %d, 提交: %d", configureErr, completeErr.rawValue)
+                NSLog("MacHead: Built-in display reconnect result - configured: %d, committed: %d", configureErr, completeErr.rawValue)
                 if completeErr == .success { return }
                 CGCancelDisplayConfiguration(configRef)
             } else {
-                NSLog("MacHead: 启用内置屏设定失败: %d", configureErr)
+                NSLog("MacHead: Built-in display reconnect configuration failed: %d", configureErr)
                 CGCancelDisplayConfiguration(configRef)
             }
-            NSLog("MacHead: 提交启用显示配置未成功，将在 0.2 秒后重试...")
+            NSLog("MacHead: Re-enabling display configuration was not committed; retrying in 0.2 seconds...")
         } else {
-            NSLog("MacHead: CGBeginDisplayConfiguration 失败: %d", beginErr.rawValue)
+            NSLog("MacHead: CGBeginDisplayConfiguration failed: %d", beginErr.rawValue)
         }
 
         guard retriesRemaining > 0 else { return }

@@ -35,7 +35,7 @@ struct StatusPopoverView: View {
                     Circle()
                         .fill(isHeadless ? Color.purple : Color.green)
                         .frame(width: 8, height: 8)
-                    Text(isHeadless ? "无头模式" : "正常运行")
+                    Text(isHeadless ? "Headless" : "Running normally")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.secondary)
                 }
@@ -68,12 +68,12 @@ struct StatusPopoverView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(isHeadless ? "恢复内置屏幕显示" : "开启 Headless 无头模式")
+                        Text(isHeadless ? "Restore built-in display" : "Enable Headless")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
                             .lineLimit(1)
                         
-                        Text(isHeadless ? "内屏已断开 · 再次点击即可恢复" : "安全断开内屏 · 降温省电挂机")
+                        Text(isHeadless ? "Built-in display disconnected · click again to restore" : "Safely disconnect the display · reduce heat and power use")
                             .font(.system(size: 11))
                             .foregroundColor(Color.white.opacity(0.85))
                             .lineLimit(1)
@@ -103,40 +103,40 @@ struct StatusPopoverView: View {
             
             // MARK: - Metrics Cards Grid
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                // Card 1: 屏幕与外设
+                // Card 1: Display & peripherals
                 MetricTileView(
                     icon: "display",
                     iconColor: .blue,
-                    title: "显示器",
-                    value: isHeadless ? "内屏已熄灭" : "内屏亮起",
-                    subtitle: externalDisplaysCount > 0 ? "外接屏: \(externalDisplaysCount) 台" : "未接入外设屏"
+                    title: "Displays",
+                    value: isHeadless ? "Built-in display off" : "Built-in display on",
+                    subtitle: externalDisplaysCount > 0 ? "External displays: \(externalDisplaysCount)" : "No external display connected"
                 )
                 
-                // Card 2: 电池与电源状态
+                // Card 2: Battery & power status
                 MetricTileView(
                     icon: powerTileIcon,
                     iconColor: powerTileColor,
-                    title: battery.isUPSActive ? "UPS 供电中" : "电源状态",
+                    title: battery.isUPSActive ? "UPS power" : "Power status",
                     value: "\(battery.currentCapacity)%",
                     subtitle: powerTileSubtitle
                 )
 
-                // Card 3: CPU 与热度
+                // Card 3: CPU & temperature
                 MetricTileView(
                     icon: "thermometer.medium",
                     iconColor: smc.currentTemperature > 75 ? .red : .teal,
-                    title: "CPU 温度",
+                    title: "CPU temperature",
                     value: smc.currentTemperature > 0 ? String(format: "%.1f °C", smc.currentTemperature) : "-- °C",
-                    subtitle: smc.fanSpeed > 0 ? "风扇: \(smc.fanSpeed) RPM" : "静音被动散热"
+                    subtitle: smc.fanSpeed > 0 ? "Fan: \(smc.fanSpeed) RPM" : "Passive cooling"
                 )
 
-                // Card 4: 电池健康/寿命
+                // Card 4: Battery health / lifespan
                 MetricTileView(
                     icon: battery.powerWatts > 0 ? "bolt.fill" : "heart.fill",
                     iconColor: battery.isUPSActive ? .orange : (battery.batteryHealth >= 80 ? .green : .orange),
-                    title: battery.powerWatts > 0 ? "即时功耗" : "电池健康度",
-                    value: battery.powerWatts > 0 ? String(format: "%.1f W", battery.powerWatts) : (battery.batteryHealth > 0 ? String(format: "%.0f%%", battery.batteryHealth) : "正常"),
-                    subtitle: battery.powerWatts > 0 ? "健康: \(Int(battery.batteryHealth))% · \(battery.cycleCount)次" : batteryHealthSubtitle
+                    title: battery.powerWatts > 0 ? "Instant power draw" : "Battery health",
+                    value: battery.powerWatts > 0 ? String(format: "%.1f W", battery.powerWatts) : (battery.batteryHealth > 0 ? String(format: "%.0f%%", battery.batteryHealth) : "Normal"),
+                    subtitle: battery.powerWatts > 0 ? "Health: \(Int(battery.batteryHealth))% · \(battery.cycleCount) cycles" : batteryHealthSubtitle
                 )
             }
             
@@ -148,7 +148,7 @@ struct StatusPopoverView: View {
                             Image(systemName: "globe")
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.blue)
-                            Text("Web 控制台与 API")
+                            Text("Web console & API")
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.secondary)
                         }
@@ -169,7 +169,7 @@ struct StatusPopoverView: View {
                             copiedServerInfo = false
                         }
                     }) {
-                        Text(copiedServerInfo ? "已复制" : "复制链接")
+                        Text(copiedServerInfo ? "Copied" : "Copy link")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.blue)
                             .padding(.horizontal, 10)
@@ -193,11 +193,11 @@ struct StatusPopoverView: View {
                             Image(systemName: "icloud.fill")
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.green)
-                            Text("Web 终端已同步至云端")
+                            Text("Web Terminal is synced to the cloud")
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.secondary)
                         }
-                        Text(verbatim: "账号: \(tailcatAccountName)")
+                        Text(verbatim: "Account: \(tailcatAccountName)")
                             .font(.system(size: 12, weight: .bold, design: .monospaced))
                             .foregroundColor(.green)
                             .lineLimit(1)
@@ -210,7 +210,7 @@ struct StatusPopoverView: View {
                             NSWorkspace.shared.open(url)
                         }
                     }) {
-                        Text("打开 Dash")
+                        Text("Open Dash")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.green)
                             .padding(.horizontal, 8)
@@ -234,7 +234,7 @@ struct StatusPopoverView: View {
                 Button(action: onOpenPreferences) {
                     HStack(spacing: 4) {
                         Image(systemName: "gearshape.fill")
-                        Text("偏好设置...")
+                        Text("Preferences...")
                     }
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.primary)
@@ -246,7 +246,7 @@ struct StatusPopoverView: View {
                 Button(action: onQuitApp) {
                     HStack(spacing: 4) {
                         Image(systemName: "power")
-                        Text("退出")
+                        Text("Quit")
                     }
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.red)
@@ -298,22 +298,22 @@ struct StatusPopoverView: View {
 
     private var powerTileSubtitle: String {
         if battery.isUPSActive {
-            let time = battery.timeRemainingFormatted.isEmpty ? "测算中" : battery.timeRemainingFormatted
+            let time = battery.timeRemainingFormatted.isEmpty ? "Calculating" : battery.timeRemainingFormatted
             return "🔋 UPS (\(time))"
         }
         let adapterStr = battery.adapterWatts > 0 ? "\(battery.adapterWatts)W" : "AC"
         if battery.isCharging {
-            return "⚡️ 充电中 (\(adapterStr))"
+            return "⚡️ Charging (\(adapterStr))"
         }
         if battery.isChargeLimitEnabled {
-            return "⚡️ AC 直供 (\(battery.chargeLimitPercent)% 限充)"
+            return "⚡️ AC power (\(battery.chargeLimitPercent)% 限充)"
         }
-        return "⚡️ AC 直供 (\(adapterStr))"
+        return "⚡️ AC power (\(adapterStr))"
     }
 
     private var batteryHealthSubtitle: String {
-        let tempStr = battery.batteryTemperature > 0 ? String(format: "%.1f°C", battery.batteryTemperature) : "良好"
-        return "循环 \(battery.cycleCount) 次 · \(tempStr)"
+        let tempStr = battery.batteryTemperature > 0 ? String(format: "%.1f°C", battery.batteryTemperature) : "Good"
+        return "Cycle \(battery.cycleCount) 次 · \(tempStr)"
     }
 }
 

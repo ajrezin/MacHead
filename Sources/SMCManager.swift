@@ -123,7 +123,7 @@ public final class SMCManager: ObservableObject {
         if isKnownFanless {
             self.isFanless = true
         } else {
-            // 如果能从 SMC 读到风扇数量，以实际为准；否则默认为有风扇（MacBook Pro/Studio 等皆有风扇）
+            // If the fan count can be read from the SMC, use the actual value; otherwise default to a fan-equipped system (MacBook Pro/Studio models all have fans)
             if let fNum = readUInt8Value(key: "FNum") {
                 self.isFanless = (fNum == 0)
             } else {
@@ -185,7 +185,7 @@ public final class SMCManager: ObservableObject {
     }
     
     private func updateMetrics() {
-        // 1. 读取 CPU 温度 (优先尝试 SMC，如果失败或为 0 则通过 IOHIDEventSystemClient 获取，最终回退到电池温度)
+        // 1. 读取 CPU 温度 (优先尝试 SMC，如果失败或为 0 则通过 IOHIDEventSystemClient 获取，最终回退到Battery温度)
         var tempRead: Double = 0.0
         
         if connection != 0 {
@@ -222,7 +222,7 @@ public final class SMCManager: ObservableObject {
             if connection != 0, let speed = readFanSpeed(key: "F0Ac") {
                 resolvedFanSpeed = speed
             } else {
-                // 如果是物理有风扇设备但无法读取具体 RPM（如 Apple Silicon 权限限制），返回 -1 标识“系统控制中”
+                // If the device physically has a fan but the specific RPM cannot be read（如 Apple Silicon 权限limit)，return -1 to indicate “managed by the system”
                 resolvedFanSpeed = -1
             }
         } else {
@@ -361,7 +361,7 @@ public final class SMCManager: ObservableObject {
         return nil
     }
 
-    /// 向 SMC 写入数据 (需要特权/root)
+    /// Write data to the SMC (requires elevated privileges / root)
     public func writeKey(key: String, bytes: [UInt8]) -> Bool {
         guard connection != 0 else { return false }
         guard let info = getKeyInfo(key: key) else { return false }
@@ -399,7 +399,7 @@ public final class SMCManager: ObservableObject {
         return (result == kIOReturnSuccess && outputStruct.result == 0)
     }
 
-    /// 设置充电禁止 (针对 Apple Silicon 的 CH0B/CH0C 机制)
+    /// Set charge inhibition (针对 Apple Silicon 的 CH0B/CH0C 机制)
     /// - Parameter inhibited: true 停止充电；false 恢复充电
     public func setChargingInhibited(_ inhibited: Bool) -> Bool {
         let val: UInt8 = inhibited ? 1 : 0
@@ -412,7 +412,7 @@ public final class SMCManager: ObservableObject {
         return false
     }
 
-    /// 设置充电上限 (针对 Intel 的 BCLM 机制)
+    /// Set charge limit (针对 Intel 的 BCLM 机制)
     public func setBCLMChargeLimit(_ limit: Int) -> Bool {
         let clamped = UInt8(max(20, min(100, limit)))
         return writeKey(key: "BCLM", bytes: [clamped])

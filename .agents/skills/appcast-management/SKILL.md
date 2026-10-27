@@ -2,17 +2,17 @@
 name: appcast-management
 description: Detailed schema, rules, and URL configurations for managing the MacHead OTA appcast.json metadata file.
 ---
-# MacHead appcast.json 管理规范
+# MacHead appcast.json management guide
 
-本技能定义了 MacHead 客户端自动更新（OTA）版本描述文件 `appcast.json` 的标准 Schema、字段规则以及托管路径。任何代理人在对应用进行版本升级或修改升级逻辑时，必须严格遵守本规范。
+This skill defines the standard schema, field rules, and hosting path for the MacHead client automatic update (OTA) metadata file `appcast.json`. Any agent modifying the app or update logic must follow this specification exactly.
 
-## 1. 物理托管路径
-- 版本清单文件必须保存在前端静态资产目录中：`website/public/appcast.json`。
-- **变更机制**：该文件只能由发版流水线（GitHub Actions `release.yml` 的 "Update appcast.json" 步骤）自动更新并随 `chore(release): update appcast.json for vX` 提交入库，禁止脱离发版手动改版本字段后直推 `main`。
-- **发布机制**：appcast.json 随官网静态资源一起发布——发版流水线把 appcast 提交推送到 main 后，由 **Cloudflare Pages 的 Git 集成**自动构建部署（注意：该 bot 提交不触发 Actions，`deploy.yml`→gh-pages 是不服务线上域名的遗留路径）；最终公网地址：`https://headlessmac.com/appcast.json`。
+## 1. Physical hosting path
+- The version manifest file must be stored in the frontend static asset directory: `website/public/appcast.json`.
+- **Change mechanism**: This file may only be updated by the release pipeline (the "Update appcast.json" step in GitHub Actions `release.yml`) and committed as `chore(release): update appcast.json for vX`; do not manually edit version fields outside the release pipeline and push directly to `main`.
+- **Publish mechanism**: appcast.json is published alongside the website static assets; after the release pipeline pushes the appcast to `main`, the Cloudflare Pages Git integration automatically builds and deploys it; the live URL is `https://headlessmac.com/appcast.json`.The appcast is published together with the static assets; after the release pipeline pushes the appcast commit to `main`, the **Cloudflare Pages Git integration** builds and deploys it automatically (note: this bot commit does not trigger Actions; the legacy `deploy.yml` → `gh-pages` path is not used for the live domain). The public URL is `https://headlessmac.com/appcast.json`.
 
-## 2. 字段 Schema 定义
-`appcast.json` 包含以下 5 个核心必填字段：
+## 2. Field schema definition
+`appcast.json` contains the following 5 required core fields:
 
 ```json
 {
@@ -20,21 +20,21 @@ description: Detailed schema, rules, and URL configurations for managing the Mac
   "build": 2,
   "pubDate": "2026-07-04",
   "url": "https://releases.headlessmac.com/MacHead-v1.1.0-macos-universal.dmg",
-  "releaseNotes": "1. 修复了插拔电源时的电池保护误触发问题；\n2. 优化了外接屏幕断开后的恢复速度。"
+  "releaseNotes": "1. 修复了插拔电源时的Battery保护误触发问题；\n2. 优化了外接屏幕断开后的恢复速度。"
 }
 ```
 
-### 字段详解：
-- `version` (String): 语义化版本号（SemVer）。比对逻辑采用 `String.compare(_:options:.numeric)`。
-- `build` (Int): 整数构建号。若 `version` 一致，但 `build` 更大，客户端也会触发更新。
-- `pubDate` (String): 版本发布日期，格式必须为 `YYYY-MM-DD`。
-- `url` (String): 安装包下载直链。必须使用绑定的 R2 存储桶子域名：`https://releases.headlessmac.com/MacHead-v[Version]-macos-universal.dmg`。
+### Field details:
+- `version` (String): Semantic version number (SemVer). Comparison uses `String.compare(_:options:.numeric)`.
+- `build` (Int): Integer build number. If `version` is the same but `build` is higher, the client still triggers an update.
+- `pubDate` (String): Version publication date in `YYYY-MM-DD` format.
+- `url` (String): Direct download URL for the installation package. It must use the bound R2 bucket subdomain: `https://releases.headlessmac.com/MacHead-v[Version]-macos-universal.dmg`.
 - `releaseNotes` (String): 面向普通用户的通俗升级日志。可以使用换行符 `\n`。
 
-## 3. 升级检测逻辑 (Swift 客户端)
-- 客户端使用单例 `UpdateManager.shared` 进行检测。
-- 自动检测默认在 App 启动 3 秒后静默触发；手动检测在偏好设置（`PreferencesView.swift`）底部的“检查更新...”按钮触发。
-- 比较逻辑：
+## 3. Update detection logic (Swift client)
+- The client performs detection using the singleton `UpdateManager.shared`.
+- Automatic checks are normally triggered silently 3 seconds after app launch; manual checks are triggered by the “Check for Updates...” button at the bottom of Preferences (`PreferencesView.swift`).
+- Comparison logic:
   ```swift
   let versionResult = cloudVersion.compare(currentVersion, options: .numeric)
   if versionResult == .orderedDescending {

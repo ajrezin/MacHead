@@ -27,7 +27,7 @@ final class InputDeviceManager {
         let newManager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         self.manager = newManager
         
-        // 匹配所有输入设备（包括 Apple Silicon 内置键盘与 Apple Top Case SPI 设备）
+        // Match all input devices (including Apple Silicon built-in keyboards and Apple Top Case SPI devices)
         IOHIDManagerSetDeviceMatching(newManager, nil)
         
         let context = Unmanaged.passUnretained(self).toOpaque()
@@ -73,7 +73,7 @@ final class InputDeviceManager {
                          name.localizedCaseInsensitiveContains("Keyboard") ||
                          name.localizedCaseInsensitiveContains("Top Case")
         
-        NSLog("MacHead: 检测到输入设备连接: %@ (内置: %@, 键盘: %@, Page: %d, Usage: %d)", name, String(isBuiltIn), String(isKeyboard), primaryUsagePage, primaryUsage)
+        NSLog("MacHead: Detected输入设备连接: %@ (内置: %@, 键盘: %@, Page: %d, Usage: %d)", name, String(isBuiltIn), String(isKeyboard), primaryUsagePage, primaryUsage)
         
         if isKeyboard {
             if isBuiltIn {
@@ -105,7 +105,7 @@ final class InputDeviceManager {
     
     private func deviceDisconnected(_ device: IOHIDDevice) {
         let name = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? "Unknown"
-        NSLog("MacHead: 检测到输入设备断开: %@", name)
+        NSLog("MacHead: Detected输入设备断开: %@", name)
         
         if builtInKeyboards.contains(device) {
             builtInKeyboards.remove(device)
@@ -153,7 +153,7 @@ final class InputDeviceManager {
                     let result = IOHIDDeviceOpen(trackpad, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
                     if result == kIOReturnSuccess {
                         seizedTrackpads.insert(trackpad)
-                        NSLog("MacHead: 成功独占（禁用）内置触控板")
+                        NSLog("MacHead: 成功独占（禁用)内置触控板")
                     } else {
                         NSLog("MacHead: 独占内置触控板失败: %d", result)
                     }
@@ -178,9 +178,9 @@ final class InputDeviceManager {
     private func startEventTap() {
         guard eventTap == nil else { return }
         
-        // 校验辅助功能权限
+        // 校验Accessibility permission
         guard AXIsProcessTrusted() else {
-            NSLog("MacHead: 无法启动键盘拦截 - 未获得辅助功能权限！")
+            NSLog("MacHead: 无法启动键盘拦截 - 未获得Accessibility permission！")
             return
         }
         
@@ -226,7 +226,7 @@ final class InputDeviceManager {
             }
             eventTap = nil
             runLoopSource = nil
-            NSLog("MacHead: 键盘拦截 CGEventTap 已关闭")
+            NSLog("MacHead: 键盘拦截 CGEventTap 已Close")
         }
     }
     

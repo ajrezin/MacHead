@@ -15,7 +15,7 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 获取完整 Git 历史以生成 Technical Release Notes
+          fetch-depth: 0 # Fetch the full Git history to generate technical release notes
 
       - name: Setup Go 🐹
         uses: actions/setup-go@v5
@@ -82,7 +82,7 @@ jobs:
           curl -L -o "${TEMP_DIR}/cloudflared_amd64.tgz" "https://github.com/cloudflare/cloudflared/releases/download/${CFD_VER}/cloudflared-darwin-amd64.tgz"
           curl -L -o "${TEMP_DIR}/cloudflared_arm64.tgz" "https://github.com/cloudflare/cloudflared/releases/download/${CFD_VER}/cloudflared-darwin-arm64.tgz"
 
-          # 两个压缩包内层文件同名，必须分目录解压后再合并
+          # The two archives contain identically named inner files; they must be extracted into separate directories before merging
           mkdir -p "${TEMP_DIR}/cfd_amd64" "${TEMP_DIR}/cfd_arm64"
           tar -xzf "${TEMP_DIR}/cloudflared_amd64.tgz" -C "${TEMP_DIR}/cfd_amd64"
           tar -xzf "${TEMP_DIR}/cloudflared_arm64.tgz" -C "${TEMP_DIR}/cfd_arm64"
@@ -96,8 +96,8 @@ jobs:
           chmod +x ./Scripts/build-tailcat.sh
           ./Scripts/build-tailcat.sh --native-only
 
-          # devtunnel 为微软专有 EULA 组件，禁止捆绑再分发，不在此下载；
-          # 用户可在 App 内通过一键安装从微软官方获取
+          # devtunnel is a Microsoft proprietary EULA component and cannot be bundled or redistributed; it is not downloaded here;
+          # Users can install it from Microsoft in the app via a one-click flow
 
           rm -rf "${TEMP_DIR}"
           echo "Successfully prepared latest universal binaries!"
@@ -120,12 +120,12 @@ jobs:
           DMG_NAME="MacHead-${TAG_NAME}-macos-universal.dmg"
           echo "Packaging DMG: ${DMG_NAME}..."
           
-          # 创建临时包装文件夹，包含 App 实体以及指向系统 Applications 目录的软链接
+          # Create a temporary staging folder containing the App bundle and a symlink into the system Applications directory
           mkdir -p dist-dmg
           cp -R "MacHead.app" dist-dmg/
           ln -s /Applications dist-dmg/Applications
           
-          # 将打包目录整体打包生成为 DMG 映像磁盘，Finder 挂载后会呈现出 App + 文件夹的双栏拖拽快捷安装界面
+          # Package the staging directory into a DMG disk image; Finder will show the App + Applications shortcut folder for drag-and-drop installation
           hdiutil create -fs HFS+ -srcfolder dist-dmg -volname "MacHead" "${DMG_NAME}"
           
           echo "dmg_name=${DMG_NAME}" >> $GITHUB_OUTPUT
@@ -145,24 +145,24 @@ jobs:
         run: |
           TAG_NAME="${{ steps.package.outputs.tag_name }}"
           
-          # 拉取所有远程标签，确保 git describe 能够正确计算上个版本号
+          # Fetch all remote tags to ensure git describe can resolve the previous version correctly
           git fetch origin --tags --force || true
           
-          # 检查标签类型 (tag 代表附注标签，commit 代表轻量标签)
+          # Check tag type (tag = annotated tag, commit = lightweight tag)
           TAG_TYPE=$(git cat-file -t "$TAG_NAME" 2>/dev/null || echo "commit")
           
           if [ "$TAG_TYPE" = "tag" ]; then
-            # 1. 附注标签：提取标签中的描述文字作为日志
+            # 1. Annotated tag: extract the tag description as the release note body
             USER_NOTES=$(git tag -l --format='%(contents)' "$TAG_NAME" | xargs)
           else
-            # 2. 轻量标签：清空以触发下方的 Commit 日志自动抓取
+            # 2. Lightweight tag: clear the note body to trigger commit-log auto-generation below
             USER_NOTES=""
           fi
           
-          # 3. 如果描述为空（或是轻量标签），则自动拉取上个 Tag 到当前 Tag 之间的所有 commit messages 作为日志
+          # 3. If the description is empty (or the tag is lightweight), automatically collect all commit messages between the previous tag and the current tag
           if [ -z "$USER_NOTES" ]; then
-            echo "No annotated tag message found. Auto-generating from git logs..."
-            # 找到上一个 Tag 的名字
+            echo "No annotated tag message found. Auto-generating release notes from Git logs..."
+            # Find the name of the previous tag
             PREV_TAG=$(git describe --tags --abbrev=0 "${TAG_NAME}^" 2>/dev/null || echo "")
             if [ -n "$PREV_TAG" ]; then
               COMMIT_RANGE="${PREV_TAG}..${TAG_NAME}"
@@ -170,11 +170,11 @@ jobs:
               COMMIT_RANGE="${TAG_NAME}"
             fi
             
-            # 获取范围内的 commit 消息，排除掉 chore 提交、合并提交和 CI 跳过提交
+            # Retrieve commit messages in range, excluding chore commits, merge commits, and CI skip commits
             USER_NOTES=$(git log "${COMMIT_RANGE}" --pretty=format:"1. %s" | \
               grep -viE "chore\(release\)|Merge pull request|Merge branch|\[skip ci\]" | \
               awk '{print NR ". " substr($0, 4)}' | \
-              paste -sd "\n" - || echo "1. 优化了系统运行效率，修复了部分已知问题。")
+              paste -sd "\n" - || echo "1. Improved system efficiency and fixed several known issues.")
           fi
           
           echo "Final release notes to be written:"
@@ -182,7 +182,7 @@ jobs:
           
           PUB_DATE=$(date +%Y-%m-%d)
           
-          # 将提取的信息传递给 Python 脚本进行安全的 JSON 与首页版本号同步重写
+          # Pass the extracted information to the Python script for safe JSON and homepage version sync rewriting
           export TAG_NAME USER_NOTES PUB_DATE
           python3 -c "
           import json
@@ -218,7 +218,7 @@ jobs:
                   html
               )
               html = re.sub(
-                  r'(id=\"download-cta-link\">(?:下载|Download) macOS Universal DMG)[^<]*(</a>)',
+                  r'(id=\"download-cta-link\">(?:Download|Download) macOS Universal DMG)[^<]*(</a>)',
                   rf'\g<1> v{version}\g<2>',
                   html
               )
@@ -255,9 +255,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.package.outputs.dmg_name }}
-          generate_release_notes: true # 自动根据 commit 历史生成 Technical 技术日志
+          generate_release_notes: true # Automatically generate technical release notes from commit history
           body: |
             ## MacHead ${{ steps.package.outputs.tag_name }}
             
-            技术变更细节请查看下方自动生成的提交日志。
+            Technical change details are listed in the automatically generated commit log below.
             User-facing release notes are served via OTA update channel.

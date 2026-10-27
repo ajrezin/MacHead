@@ -1,43 +1,43 @@
-name: 🐛 Bug 反馈 / Bug report
-description: 某个功能表现不符合预期
+name: 🐛 Bug report
+description: A feature is not behaving as expected
 labels: ["bug"]
 body:
   - type: textarea
     id: what-happened
     attributes:
-      label: 发生了什么 / What happened
-      description: 简述现象与期望行为(期望 vs 实际)
+      label: What happened
+      description: Briefly describe the observed behavior and expected behavior (expected vs actual)
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: MacHead 版本 / Version
-      description: 菜单栏图标 → 关于(如 0.1.23 build 26)
+      label: MacHead version
+      description: Menu bar icon → About (for example, 0.1.23 build 26)
     validations:
       required: true
   - type: input
     id: os
     attributes:
-      label: macOS 版本与机型 / OS & model
-      description: 如 macOS 15.6, MacBook Pro 14" M3 Pro
+      label: macOS version & model
+      description: For example, macOS 15.6, MacBook Pro 14" M3 Pro
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: 复现步骤 / Steps to reproduce
+      label: Steps to reproduce
       placeholder: |
-        1. 开启 …
-        2. 合盖 …
-        3. 观察 …
+        1. Enable …
+        2. Close the lid …
+        3. Observe …
   - type: textarea
     id: logs
     attributes:
-      label: 日志(可选)/ Logs
-      description: 终端运行 `/Applications/MacHead.app/Contents/MacOS/MacHead` 后的报错输出
+      label: Logs (optional)
+      description: Error output from running `/Applications/MacHead.app/Contents/MacOS/MacHead` in Terminal
       render: shell
   - type: markdown
     attributes:
       value: |
-        ⚠️ 安全漏洞请勿使用此模板,走[私密漏洞报告](https://github.com/ox01024/MacHead/security/advisories/new)。
+        ⚠️ For security vulnerabilities, do not use this template; use [private vulnerability reporting](https://github.com/ox01024/MacHead/security/advisories/new).

@@ -51,7 +51,7 @@ export async function onRequestPost(context) {
     const extraAction = sanitizeText(payload.action || payload.extra_action, 64);
     const uptimeSeconds = Math.max(0, Math.min(315360000, Math.floor(Number(payload.uptime_seconds) || 0)));
 
-    // 如果未绑定 D1 数据库 (env.DB)，降级为 Console 日志记录（防报错）
+    // If the D1 database (env.DB) is not bound, fall back to console logging to avoid errors
     if (!env.DB) {
       return new Response(JSON.stringify({ status: 'ok', mode: 'log_only' }), {
         status: 200,

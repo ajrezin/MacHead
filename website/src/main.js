@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuToggle = document.getElementById('nav-menu-toggle');
     const navLinks = document.getElementById('nav-links');
     if (menuToggle && navLinks) {
-        const openLabel = IS_EN ? 'Open navigation menu' : '打开导航菜单';
-        const closeLabel = IS_EN ? 'Close navigation menu' : '关闭导航菜单';
+        const openLabel = IS_EN ? 'Open navigation menu' : 'Open navigation menu';
+        const closeLabel = IS_EN ? 'Close navigation menu' : 'Close navigation menu';
 
         const closeMenu = () => {
             navLinks.classList.remove('open');
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 `;
-                copyBtn.title = IS_EN ? 'Copied' : '已复制';
+                copyBtn.title = IS_EN ? 'Copied' : 'Copied';
                 setTimeout(() => {
                     copyBtn.innerHTML = originalSvg;
                     copyBtn.title = IS_EN ? 'Copy command' : '复制安装命令';
@@ -107,10 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isTyping = false;
 
     const cmdOutputsZh = {
-        status: `运行模式: 正常显示 (内置屏幕已点亮)\nWeb 控制台: 运行中 (http://192.168.100.131:8080)\n合盖防休眠: 未启用\n当前电源: 交流电源 (电池 100%)\n无头模式内置键鼠防误触: 已就绪`,
-        enable: `MacHead: 正在启用无头模式...\nMacHead: 已通过 SkyLight 逻辑切断内置屏幕电源\nMacHead: 内置麦克风已自动静音锁定\nMacHead: 合盖防休眠电源断言已锁定\nWeb 控制台: http://192.168.100.131:8080\n运行模式: 无头服务器模式 (内置屏幕已断电)`,
-        disable: `MacHead: 正在退出无头模式...\nMacHead: 内置屏幕已恢复供电与点亮\nMacHead: 内置麦克风静音已解除\nMacHead: 防休眠电源断言已释放\n运行模式: 正常显示 (内置屏幕已点亮)`,
-        'sleep-prevent': `MacHead: 正在开启合盖防休眠断言...\nMacHead: 系统电源断言锁定成功 (ID: 3274)\n合盖防休眠: 已启用\n系统将在合盖状态下持续保持唤醒运行。`
+        status: `Mode: Normal显示 (内置屏幕已点亮)\nWeb 控制台: 运行中 (http://192.168.100.131:8080)\n合盖防休眠: Not enabled\n当前电源: 交流电源 (Battery 100%)\nHeadless内置键鼠防误触: 已就绪`,
+        enable: `MacHead: 正在启用Headless...\nMacHead: 已通过 SkyLight 逻辑切断内置屏幕电源\nMacHead: 内置麦克风已Automatic静音锁定\nMacHead: 合盖防休眠电源断言已锁定\nWeb 控制台: http://192.168.100.131:8080\nMode: 无头服务器模式 (内置屏幕已断电)`,
+        disable: `MacHead: 正在QuitHeadless...\nMacHead: 内置屏幕已恢复供电与点亮\nMacHead: 内置麦克风静音已解除\nMacHead: 防休眠电源断言已释放\nMode: Normal显示 (内置屏幕已点亮)`,
+        'sleep-prevent': `MacHead: 正在开启合盖防休眠断言...\nMacHead: 系统电源断言锁定成功 (ID: 3274)\n合盖防休眠: 已启用\n系统将在合盖Status下持续保持唤醒运行。`
     };
 
     const cmdOutputsEn = {
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (IS_EN) {
                 themeToggle.textContent = newTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
             } else {
-                themeToggle.textContent = newTheme === 'dark' ? '浅色模式' : '深色模式';
+                themeToggle.textContent = newTheme === 'dark' ? '浅色模式' : 'Dark mode';
             }
         });
     }
@@ -227,15 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 mockModeDot.className = 'status-dot active';
                 mockModeDot.style.backgroundColor = '#42b883';
             }
-            if (mockModeText) mockModeText.textContent = IS_EN ? 'Headless Active' : '无头模式已激活';
-            if (mockLidVal) mockLidVal.textContent = IS_EN ? '💻 Clamshell' : '💻 合盖状态';
+            if (mockModeText) mockModeText.textContent = IS_EN ? 'Headless Active' : 'Headless已激活';
+            if (mockLidVal) mockLidVal.textContent = IS_EN ? '💻 Clamshell' : '💻 合盖Status';
             if (mockAlertBox) mockAlertBox.style.display = 'block';
         } else {
             if (mockModeDot) {
                 mockModeDot.className = 'status-dot';
                 mockModeDot.style.backgroundColor = '#007aff';
             }
-            if (mockModeText) mockModeText.textContent = IS_EN ? 'Normal Mode' : '常规显示模式';
+            if (mockModeText) mockModeText.textContent = IS_EN ? 'Normal Mode' : 'Normal display mode';
             if (mockLidVal) mockLidVal.textContent = IS_EN ? '💻 Screen Active' : '💻 内屏亮起';
             if (mockAlertBox) mockAlertBox.style.display = 'none';
         }
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (peaksLabel) {
             peaksLabel.textContent = IS_EN
                 ? `Peak - CPU: ${cpuPeak}% | RAM: ${ramPeak}%`
-                : `峰值 - CPU: ${cpuPeak}% | RAM: ${ramPeak}%`;
+                : `Peak - CPU: ${cpuPeak}% | RAM: ${ramPeak}%`;
         }
 
         const cpuCircle = document.getElementById('mock-cpu-circle');
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rxPeakEl) {
                 rxPeakEl.textContent = IS_EN
                     ? `↓ Peak: ${formatSpeed(rxPeak)}`
-                    : `↓ 峰值: ${formatSpeed(rxPeak)}`;
+                    : `↓ Peak: ${formatSpeed(rxPeak)}`;
             }
         }
         if (txSpeed > txPeak) {
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (txPeakEl) {
                 txPeakEl.textContent = IS_EN
                     ? `↑ Peak: ${formatSpeed(txPeak)}`
-                    : `↑ 峰值: ${formatSpeed(txPeak)}`;
+                    : `↑ Peak: ${formatSpeed(txPeak)}`;
             }
         }
     }, 3000);
@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ctaBtn) {
             ctaBtn.textContent = IS_EN
                 ? `Download macOS Universal DMG v${version}`
-                : `下载 macOS Universal DMG v${version}`;
+                : `Download macOS Universal DMG v${version}`;
         }
 
         const ldScript = document.getElementById('schema-json-ld');
@@ -525,78 +525,78 @@ const CHANGELOG_DATA_ZH = [
     {
         version: '0.1.27',
         date: '2026-10-25',
-        title: 'MacHead Cloud 云端控制台、三轨 E2EE 远程终端与全链路安全加固',
+        title: 'MacHead Cloud Web Console、三轨 E2EE 远程Terminal与全链路安全加固',
         bullets: [
             '新增 MacHead Cloud 云端远程控制台 (dash.headlessmac.com)，支持 GitHub / Google 账号 PKCE 安全绑定与免码一键直连。',
             '新增 Happy Eyeballs 三轨自适应传输引擎：本机 Loopback 零延迟直连、局域网 WebRTC P2P 直连、跨网 Tailcat WireGuard E2EE 端到端加密隧道。',
-            '新增多标签 Web 远程终端、远程文件管理器（拖拽上传与 UTF-8/GB18030 在线代码编辑）及远程硬件遥测与无头模式控制看板。',
-            '全链路安全加固：云端 D1 隧道地址启用 AES-256-GCM 信封加密落库，内置 Go 原生终端口令门禁（防信号中断绕过），客户端令牌升级为 AES-GCM 硬件派生加密保险箱（0600 权限）。'
+            '新增多标签 Web 远程Terminal、远程Files管理器（拖拽上传与 UTF-8/GB18030 Online代码编辑)及远程硬件遥测与Headless控制看板。',
+            '全链路安全加固：云端 D1 隧道地址启用 AES-256-GCM 信封加密落库，内置 Go 原生Terminal口令门禁（防信号中断绕过)，客户端令牌升级为 AES-GCM 硬件派生加密保险箱（0600 权限)。'
         ]
     },
     {
         version: '0.1.25',
         date: '2026-10-14',
-        title: '重启或退出后开机自动进入无头模式修复',
+        title: '重启或Quit后开机Automatic进入Headless修复',
         bullets: [
-            '修复重启系统或重新打开应用后无法自动恢复无头模式屏蔽内屏的问题。',
-            '优化开机自启与显示器状态接管时序。'
+            '修复重启系统或重新打开应用后无法Automatic恢复Headless屏蔽内屏的问题。',
+            '优化开机自启与显示器Status接管时序。'
         ]
     },
     {
         version: '0.1.23',
         date: '2026-09-23',
-        title: 'Web 控制台自定义端口与原生远程管理状态感知',
+        title: 'Web 控制台自定义端口与原生远程管理Status感知',
         bullets: [
             '局域网 Web 控制面板支持自定义服务端口，并提供特权端口与范围实时校验提示。',
-            '偏好设置面板与快捷菜单栏动态显示实际运行的访问地址与一键复制链接。',
-            'Microsoft Dev Tunnels 与 FRP 内网穿透服务规则自动联动同步自定义 Web 端口。',
-            '新增 macOS 原生远程管理感知：秒级检测本机 SSH (22)、屏幕共享 VNC (5900)、文件共享 SMB (445) 服务端口状态。',
-            '提供专属快捷命令与一键复制功能（如 ssh user@ip、vnc://ip、smb://ip），并支持一键直达系统共享设置面板。'
+            '偏好设置面板与快捷菜单栏动态显示实际运行的访问地址与一键Copy link。',
+            'Microsoft Dev Tunnels 与 FRP Network Tunneling服务规则Automatic联动同步自定义 Web 端口。',
+            '新增 macOS 原生远程管理感知：秒级检测本机 SSH (22)、屏幕共享 VNC (5900)、Files共享 SMB (445) 服务端口Status。',
+            '提供专属快捷命令与一键复制功能（如 ssh user@ip、vnc://ip、smb://ip)，并支持一键直达系统共享设置面板。'
         ]
     },
     {
         version: '0.1.22',
         date: '2026-09-23',
-        title: '全景电池管理、智能 UPS 守护与防鼓包限充',
+        title: '全景Battery管理、智能 UPS 守护与防鼓包限充',
         bullets: [
-            '偏好设置新增独立「电池」专区，对齐 macOS 原生设计规范与图标体系。',
+            '偏好设置新增独立「Battery」专区，对齐 macOS 原生设计规范与图标体系。',
             '全景电气与健康指标：实时充放电功率 (W)、母线电压/电流、充电适配器规格、最大可用容量与原厂设计容量对比。',
-            '智能 UPS 模式：市电中断时自动推算剩余续航倒计时，并增强 Bark / Telegram / 系统级断电预警。',
+            '智能 UPS 模式：市电中断时Automatic推算剩余续航倒计时，并增强 Bark / Telegram / 系统级断电预警。',
             '防鼓包充电上限 (Charge Limit)：支持 50%~90% 调节与 Sailing Mode 回充死区；老系统专属 SMC 守护，新系统协同原生固件限充。',
             '静默无感控充：重构特权授权通道，支持一次性免密配置，彻底消除后台弹窗打扰。',
-            '远程 Web 控制台同步：支持远程查看实时电气指标并在线调节充电上限。'
+            'Remote web console同步：支持远程查看实时电气指标并Online调节充电上限。'
         ]
     },
     {
         version: '0.1.21',
         date: '2026-09-21',
-        title: '外屏断开自动恢复内屏修复',
+        title: '外屏断开Automatic恢复内屏修复',
         bullets: [
-            '修复断开外屏后内屏无法自动恢复的问题，系统虚拟屏不再被误判为外接显示器。',
-            '恢复可靠性增强：显示器配置事务完成后统一决策、恢复失败自动重试、重复操作幂等跳过。',
+            '修复断开外屏后内屏无法Automatic恢复的问题，系统虚拟屏不再被误判为外接显示器。',
+            '恢复可靠性增强：显示器配置事务完成后统一决策、恢复失败Automatic重试、重复Actions幂等跳过。',
             '偏好设置与菜单栏的外接显示器列表口径统一。'
         ]
     },
     {
         version: '0.1.20',
         date: '2026-09-19',
-        title: '内网穿透独立分区与遥测开关',
+        title: 'Network Tunneling独立分区与遥测开关',
         bullets: [
-            '内网穿透独立分区：Dev Tunnels / Cloudflare Tunnel / FRP 三套方案统一管理。',
-            'devtunnel 支持应用内一键安装，无需手动下载配置。',
-            '新增「匿名使用统计」开关，可一键关闭遥测。',
+            'Network Tunneling独立分区：Dev Tunnels / Cloudflare Tunnel / FRP 三套方案统一管理。',
+            'devtunnel 支持应用内一键安装，无需手动Download配置。',
+            '新增「匿名使用统计」开关，可一键Close遥测。',
             '若干稳定性与体验优化。'
         ]
     },
     {
         version: '0.1.19',
         date: '2026-08-09',
-        title: '原生集成 FRP 内网穿透与后台线程重载',
+        title: '原生集成 FRP Network Tunneling与后台线程重载',
         bullets: [
-            '原生集成 FRP 内网穿透 (frpc) 客户端，支持多隧道端口与自定义域名映射。',
-            '新增快捷图形配置与自定义 TOML/INI 配置文件双模式支持。',
+            '原生集成 FRP Network Tunneling (frpc) 客户端，支持多隧道端口与自定义域名映射。',
+            '新增快捷图形配置与自定义 TOML/INI 配置Files双模式支持。',
             '全面重构各监控服务重载机制为后台异步线程，消除配置测试时的界面卡顿。',
-            '优化配置测试按钮逻辑，支持一键保存、测试与自动使能生效。'
+            '优化配置测试按钮逻辑，支持一键保存、测试与Automatic使能生效。'
         ]
     },
     {
@@ -604,16 +604,16 @@ const CHANGELOG_DATA_ZH = [
         date: '2026-07-31',
         title: '哪吒 Agent 自更新死锁修复与临时锁清理',
         bullets: [
-            '修复哪吒监控 Agent 自动更新锁导致的死锁无法建立连接问题。',
-            '增加启动前的临时锁目录自动清理逻辑。'
+            '修复哪吒监控 Agent Automatic更新锁导致的死锁无法建立连接问题。',
+            '增加启动前的临时锁目录Automatic清理逻辑。'
         ]
     },
     {
         version: '0.1.17',
         date: '2026-07-31',
-        title: '全新菜单栏状态面板与自适应动画',
+        title: '全新菜单栏Status面板与自适应动画',
         bullets: [
-            '新增全新菜单栏状态控制面板，支持一键无头模式切换与硬件状态实时卡片。',
+            '新增全新菜单栏Status控制面板，支持一键Headless切换与硬件Status实时卡片。',
             '优化非无头 MacBook 用户的初始默认预设，避免首次启动误切。',
             '优化浮窗自适应动画与平滑交互。'
         ]
@@ -623,7 +623,7 @@ const CHANGELOG_DATA_ZH = [
         date: '2026-07-28',
         title: '哪吒监控实时连接指示器与错误诊断',
         bullets: [
-            '增加哪吒监控实时连接状态指示器与智能错误诊断。',
+            '增加哪吒监控实时连接Status指示器与智能错误诊断。',
             '修复哪吒配置弹窗尺寸偏小被遮挡的问题。',
             '优化配置修改体验，防止编辑输入时频繁断连重启。'
         ]
@@ -634,7 +634,7 @@ const CHANGELOG_DATA_ZH = [
         title: '隐私优先的遥测机制与 Cloudflare D1 分析',
         bullets: [
             '全面上线隐私优先的核心指标遥测与心跳机制。',
-            '优化了 Headless 模式与电池保护事件的统计记录。',
+            '优化了 Headless 模式与Battery保护事件的统计记录。',
             '接入 Cloudflare D1 数据库支撑全栈数据分析。'
         ]
     },
@@ -643,8 +643,8 @@ const CHANGELOG_DATA_ZH = [
         date: '2026-07-13',
         title: '合盖防休眠守护与 Apple Silicon 传感器修复',
         bullets: [
-            '实现了全新的“合盖后仍然保持运行”功能（防休眠与合盖守护）。',
-            '完美修复 Apple Silicon (M系列) 芯片下温度显示 0.0°C 以及物理风扇状态误报的 Bug。',
+            '实现了全新的“合盖后仍然保持运行”功能（防休眠与合盖守护)。',
+            '完美修复 Apple Silicon (M系列) 芯片下温度显示 0.0°C 以及物理风扇Status误报的 Bug。',
             '重构输入设备保护页面为横向多选对齐卡片，移除全局设置冗余副标题描述。'
         ]
     },
@@ -653,8 +653,8 @@ const CHANGELOG_DATA_ZH = [
         date: '2026-07-10',
         title: '局域网 Web 控制面板与物理性能看板',
         bullets: [
-            '新增安全的局域网远程管理控制台，全面升级安全 Cookie 会话隔离鉴权与登录页。',
-            '物理性能看板升级，引入 CPU 核心物理温度、真实物理内存（RAM）使用量与 GPU 显存负载细节监控。'
+            '新增安全的局域网远程管理控制台，全面升级安全 Cookie 会话隔离鉴权与Log in页。',
+            '物理性能看板升级，引入 CPU 核心物理温度、真实物理内存（RAM)使用量与 GPU 显存负载细节监控。'
         ]
     },
     {

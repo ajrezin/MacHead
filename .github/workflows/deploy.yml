@@ -6,10 +6,10 @@ on:
       - main
     paths:
       - 'website/**'
-  # 允许手动触发工作流
+  # Allow manual workflow triggering
   workflow_dispatch:
 
-# 赋予工作流写入分支的权限
+# Grant the workflow permission to write to branches
 permissions:
   contents: write
 

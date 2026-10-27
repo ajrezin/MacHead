@@ -1,9 +1,9 @@
-## 改动说明 / What & why
+## Changes / What & why
 
-<!-- 这个 PR 做了什么、为什么这样改;关联 issue 用 Fixes #N -->
+<!-- What this PR does and why; use Fixes #N for related issues -->
 
-## 自测 / Testing
+## Self-check / Testing
 
-- [ ] `./build.sh --no-install` 构建通过
-- [ ] 涉及的权限路径(辅助功能 / 输入监听 / sudoers)已实际验证
-- [ ] UI 改动已附截图
+- [ ] `./build.sh --no-install` builds successfully
+- [ ] Relevant permission paths (Accessibility / Input Monitoring / sudoers) were validated in practice
+- [ ] UI changes include screenshots

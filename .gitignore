@@ -11,12 +11,12 @@ Resources/cloudflared
 Resources/tailcat
 Resources/devtunnel
 
-# Wrangler 本地状态（含账号信息与 Miniflare 数据库，不入库）
+# Wrangler local state (contains account info and Miniflare database; do not check in)
 .wrangler/
 .claude/
 node_modules/
 
-# 安全与本地环境（开源加固）
+# Security and local environment (open-source hardening)
 .env*
 *.mobileprovision
 *.p12
@@ -24,5 +24,5 @@ node_modules/
 DerivedData/
 build/
 
-# 本地素材:仅用于 GitHub Settings → General → Social image 手动上传,不入库
+# Local assets: used only for manual Social image upload in GitHub Settings → General; do not check in
 social-preview.png

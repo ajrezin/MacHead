@@ -37,7 +37,7 @@ export async function onRequestGet(context) {
   const { request, env } = context;
   const auth = await authenticateRequest(request, env);
   if (!auth) {
-    return jsonResponse({ error: '未登录或会话已过期' }, 401);
+    return jsonResponse({ error: 'Not logged in or session expired' }, 401);
   }
   if (auth.clientType === 'macos_app') {
     return jsonResponse({ error: 'Forbidden: client device token cannot list account devices' }, 403);

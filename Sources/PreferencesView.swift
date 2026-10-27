@@ -20,12 +20,12 @@ enum PreferenceTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .general: return "常规设置"
-        case .power: return "电池"
-        case .hardware: return "硬件与外设"
-        case .integrations: return "监控与通知"
-        case .tunneling: return "内网穿透"
-        case .status: return "显示器与状态"
+        case .general: return "General"
+        case .power: return "Battery"
+        case .hardware: return "Hardware & Peripherals"
+        case .integrations: return "Monitoring & Alerts"
+        case .tunneling: return "Network Tunneling"
+        case .status: return "Displays & Status"
         }
     }
 
@@ -172,10 +172,10 @@ struct PreferencesView: View {
 
     private var nezhaStatusBadgeText: String {
         switch nezhaStatus {
-        case .connected: return "已连接"
-        case .connecting: return "连接中..."
-        case .error: return "连接失败"
-        case .stopped: return "已停用"
+        case .connected: return "Connected"
+        case .connecting: return "Connecting..."
+        case .error: return "Connection failed"
+        case .stopped: return "Disabled"
         }
     }
 
@@ -216,10 +216,10 @@ struct PreferencesView: View {
 
     private var frpStatusBadgeText: String {
         switch frpStatus {
-        case .connected: return "已连接"
-        case .connecting: return "连接中..."
-        case .error: return "连接失败"
-        case .stopped: return "已停用"
+        case .connected: return "Connected"
+        case .connecting: return "Connecting..."
+        case .error: return "Connection failed"
+        case .stopped: return "Disabled"
         }
     }
 
@@ -266,10 +266,10 @@ struct PreferencesView: View {
 
     private var devTunnelStatusBadgeText: String {
         switch devTunnelStatus {
-        case .connected: return "已连接"
-        case .connecting: return "连接中..."
-        case .error: return "连接失败"
-        case .stopped: return "已停用"
+        case .connected: return "Connected"
+        case .connecting: return "Connecting..."
+        case .error: return "Connection failed"
+        case .stopped: return "Disabled"
         }
     }
 
@@ -292,10 +292,10 @@ struct PreferencesView: View {
 
     private var cloudflareStatusBadgeText: String {
         switch cloudflareStatus {
-        case .connected: return "已连接"
-        case .connecting: return "连接中..."
-        case .error: return "连接失败"
-        case .stopped: return "已停用"
+        case .connected: return "Connected"
+        case .connecting: return "Connecting..."
+        case .error: return "Connection failed"
+        case .stopped: return "Disabled"
         }
     }
 
@@ -461,7 +461,7 @@ struct PreferencesView: View {
                                         HStack(spacing: 6) {
                                             Image(systemName: "arrow.up.right.circle.fill")
                                                 .foregroundColor(.green)
-                                            Text("打开 Dash 控制台")
+                                            Text("Open Dash 控制台")
                                                 .font(.caption)
                                             Spacer()
                                         }
@@ -479,7 +479,7 @@ struct PreferencesView: View {
                                         HStack(spacing: 6) {
                                             Image(systemName: "rectangle.portrait.and.arrow.right")
                                                 .foregroundColor(.red)
-                                            Text("退出账号")
+                                            Text("Quit账号")
                                                 .font(.caption)
                                                 .foregroundColor(.red)
                                             Spacer()
@@ -504,7 +504,7 @@ struct PreferencesView: View {
                                     .foregroundColor(.secondary)
                                     .lineLimit(1)
                                 Spacer(minLength: 0)
-                                Button("取消") {
+                                Button("Cancel") {
                                     TailcatService.shared.cancelBrowserAuth()
                                 }
                                 .font(.system(size: 11))
@@ -523,7 +523,7 @@ struct PreferencesView: View {
                                         .foregroundColor(.secondary)
                                         .frame(width: 24, height: 24)
 
-                                    Text("登录账号")
+                                    Text("Log in账号")
                                         .font(.system(size: 13, weight: .medium))
                                         .foregroundColor(.primary)
                                         .lineLimit(1)
@@ -587,7 +587,7 @@ struct PreferencesView: View {
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("启动时自动进入无头模式") {
+                                SettingsRow("启动时Automatic进入Headless") {
                                     Toggle("", isOn: $autoEnableOnLaunch)
                                         .toggleStyle(.switch)
                                         .labelsHidden()
@@ -615,7 +615,7 @@ struct PreferencesView: View {
                                         .toggleStyle(.switch)
                                         .labelsHidden()
                                 }
-                                .help("帮助我们改进 MacHead：仅发送随机匿名 ID、系统与应用版本及功能开关状态，不含任何个人信息，可随时关闭。")
+                                .help("帮助我们改进 MacHead：仅发送随机匿名 ID、系统与应用版本及功能开关Status，不含任何个人信息，可随时Close。")
                             }
                             
                             SettingsCard(title: "局域网远程控制") {
@@ -669,7 +669,7 @@ struct PreferencesView: View {
                             }
 
                             SettingsCard(title: "macOS 原生远程管理感知") {
-                                SettingsRow("SSH 远程登录", subtitle: "端口 22 · 字符终端") {
+                                SettingsRow("SSH 远程Log in", subtitle: "端口 22 · 字符Terminal") {
                                     HStack(spacing: 8) {
                                         serviceStatusBadge(isActive: remoteSharing.isSSHRunning)
 
@@ -686,7 +686,7 @@ struct PreferencesView: View {
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("屏幕共享 (VNC)", subtitle: "端口 5900 · 远程桌面") {
+                                SettingsRow("屏幕共享 (VNC)", subtitle: "端口 5900 · 远程Desktop") {
                                     HStack(spacing: 8) {
                                         serviceStatusBadge(isActive: remoteSharing.isVNCRunning)
 
@@ -703,7 +703,7 @@ struct PreferencesView: View {
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("文件共享 (SMB)", subtitle: "端口 445 · 局域网访达与文件挂载") {
+                                SettingsRow("Files共享 (SMB)", subtitle: "端口 445 · 局域网访达与Files挂载") {
                                     HStack(spacing: 8) {
                                         serviceStatusBadge(isActive: remoteSharing.isSMBRunning)
 
@@ -720,7 +720,7 @@ struct PreferencesView: View {
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("系统共享管理", subtitle: "开启或关闭服务请前往 macOS 系统设置") {
+                                SettingsRow("系统共享管理", subtitle: "开启或Close服务请Go macOS 系统设置") {
                                     HStack(spacing: 8) {
                                         Button(action: {
                                             remoteSharing.refresh()
@@ -729,7 +729,7 @@ struct PreferencesView: View {
                                                 .font(.caption)
                                         }
                                         .buttonStyle(.borderless)
-                                        .help("刷新端口监听状态")
+                                        .help("Refresh端口监听Status")
 
                                         Button("配置系统共享...") {
                                             remoteSharing.openSystemSharingSettings()
@@ -747,7 +747,7 @@ struct PreferencesView: View {
 
                                     VStack(alignment: .leading, spacing: 2) {
                                         HStack(spacing: 6) {
-                                            Text("正在以电池 UPS 模式运行")
+                                            Text("正在以Battery UPS 模式运行")
                                                 .font(.system(size: 13, weight: .bold))
                                                 .foregroundColor(.primary)
 
@@ -783,7 +783,7 @@ struct PreferencesView: View {
                             // ═══════════════════════════════════════════════════════════
 
                             SettingsCard(title: "供电与运行策略") {
-                                SettingsRow("防止空闲睡眠", subtitle: "阻止系统在无人操作时自动进入睡眠") {
+                                SettingsRow("防止空闲睡眠", subtitle: "阻止系统在无人Actions时Automatic进入睡眠") {
                                     Toggle("", isOn: Binding(
                                         get: { self.preventIdleSleep },
                                         set: { newValue in
@@ -797,7 +797,7 @@ struct PreferencesView: View {
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("合盖后仍然保持运行状态", subtitle: "合盖时维持系统活跃，无缝充当常驻服务器") {
+                                SettingsRow("合盖后仍然保持运行Status", subtitle: "合盖时维持系统活跃，无缝充当常驻服务器") {
                                     Toggle("", isOn: Binding(
                                         get: { self.keepRunningOnLidClose },
                                         set: { newValue in
@@ -811,7 +811,7 @@ struct PreferencesView: View {
                             }
 
                             SettingsCard(title: "长期插电防鼓包养护 (Charge Limit)") {
-                                SettingsRow("启用充电上限保护", subtitle: "到达指定上限后暂停充电，延缓电池高压与长期发热鼓包") {
+                                SettingsRow("启用充电上限保护", subtitle: "到达指定上限后暂停充电，延缓Battery高压与长期发热鼓包") {
                                     HStack(spacing: 8) {
                                         Toggle("", isOn: $battery.customLimitEnabled)
                                             .toggleStyle(.switch)
@@ -889,7 +889,7 @@ struct PreferencesView: View {
                             }
 
                             SettingsCard(title: "断电与休眠保护") {
-                                SettingsRow("启用低电量电池保护", subtitle: "断电且电量低于安全阈值时自动休眠，防止电池过放损坏") {
+                                SettingsRow("启用低电量Battery保护", subtitle: "断电且电量低于安全阈值时Automatic休眠，防止Battery过放损坏") {
                                     HStack(spacing: 12) {
                                         Toggle("", isOn: Binding(
                                             get: { self.enableBatteryProtection },
@@ -910,12 +910,12 @@ struct PreferencesView: View {
                             }
 
                             // ═══════════════════════════════════════════════════════════
-                            // 区块二：电池指标与健康监控看板 (全部信息读数集中排列)
+                            // 区块二：Battery指标与健康监控看板 (全部信息读数集中排列)
                             // ═══════════════════════════════════════════════════════════
 
                             SettingsCard(title: "实时电气指标") {
                                 SettingsRow("即时充放电功率") {
-                                    Text(battery.powerWatts > 0 ? String(format: "%.2f W", battery.powerWatts) : (battery.isCharging ? "充电中" : "0.00 W (直供)"))
+                                    Text(battery.powerWatts > 0 ? String(format: "%.2f W", battery.powerWatts) : (battery.isCharging ? "Charging" : "0.00 W (直供)"))
                                         .fontWeight(.semibold)
                                         .foregroundColor(battery.isUPSActive ? .orange : (battery.isCharging ? .green : .primary))
                                 }
@@ -930,25 +930,25 @@ struct PreferencesView: View {
                                 Divider().padding(.horizontal, 16)
 
                                 SettingsRow("外接供电适配器") {
-                                    Text(battery.adapterWatts > 0 ? "\(battery.adapterWatts)W (\(battery.adapterName.isEmpty ? "交流适配器" : battery.adapterName))" : (battery.isUPSActive ? "未连接 (电池供电)" : "外接电源"))
+                                    Text(battery.adapterWatts > 0 ? "\(battery.adapterWatts)W (\(battery.adapterName.isEmpty ? "交流适配器" : battery.adapterName))" : (battery.isUPSActive ? "未连接 (Battery供电)" : "外接电源"))
                                         .fontWeight(.medium)
                                 }
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("电源预估状态") {
-                                    Text(battery.timeRemainingFormatted.isEmpty ? "正常运行" : battery.timeRemainingFormatted)
+                                SettingsRow("电源预估Status") {
+                                    Text(battery.timeRemainingFormatted.isEmpty ? "Normal运行" : battery.timeRemainingFormatted)
                                         .fontWeight(.medium)
                                         .foregroundColor(battery.isUPSActive ? .orange : .secondary)
                                 }
                             }
 
-                            SettingsCard(title: "电池健康与容量") {
+                            SettingsCard(title: "Battery健康与容量") {
                                 SettingsRow("当前剩余电量") {
                                     HStack(spacing: 8) {
                                         Image(systemName: battery.isCharging ? "bolt.batteryblock.fill" : (battery.currentCapacity > 20 ? "battery.100" : "battery.25"))
                                             .foregroundColor(battery.isCharging ? .green : (battery.currentCapacity > 20 ? .blue : .orange))
-                                        Text("\(battery.currentCapacity)% (\(battery.powerState == "AC Power" ? "外接交流电" : "电池供电"))")
+                                        Text("\(battery.currentCapacity)% (\(battery.powerState == "AC Power" ? "外接交流电" : "Battery供电"))")
                                             .fontWeight(.medium)
                                     }
                                 }
@@ -967,7 +967,7 @@ struct PreferencesView: View {
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("电池健康度 (最大容量)") {
+                                SettingsRow("Battery健康度 (最大容量)") {
                                     Text(battery.batteryHealth > 0 ? String(format: "%.1f%%", battery.batteryHealth) : "检测中")
                                         .fontWeight(.medium)
                                         .foregroundColor(battery.batteryHealth >= 80 ? .primary : .orange)
@@ -975,7 +975,7 @@ struct PreferencesView: View {
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("充放电循环次数") {
+                                SettingsRow("充放电Cycle count") {
                                     Text("\(battery.cycleCount) 次")
                                         .fontWeight(.medium)
                                 }
@@ -983,7 +983,7 @@ struct PreferencesView: View {
                                 if battery.batteryTemperature > 0 {
                                     Divider().padding(.horizontal, 16)
 
-                                    SettingsRow("电池包温度") {
+                                    SettingsRow("Battery包温度") {
                                         Text(String(format: "%.1f°C", battery.batteryTemperature))
                                             .fontWeight(.medium)
                                             .foregroundColor(battery.batteryTemperature > 38 ? .red : .primary)
@@ -995,7 +995,7 @@ struct PreferencesView: View {
                             SettingsCard(title: "输入设备保护") {
                                 SettingsRow("禁用内置键盘") {
                                     HStack(spacing: 16) {
-                                        Toggle("无头模式下", isOn: Binding(
+                                        Toggle("Headless下", isOn: Binding(
                                             get: { self.disableKeyboardInHeadless },
                                             set: { newValue in
                                                 self.disableKeyboardInHeadless = newValue
@@ -1023,7 +1023,7 @@ struct PreferencesView: View {
 
                                 SettingsRow("禁用内置触控板") {
                                     HStack(spacing: 16) {
-                                        Toggle("无头模式下", isOn: Binding(
+                                        Toggle("Headless下", isOn: Binding(
                                             get: { self.disableTrackpadInHeadless },
                                             set: { newValue in
                                                 self.disableTrackpadInHeadless = newValue
@@ -1050,7 +1050,7 @@ struct PreferencesView: View {
                                         HStack(spacing: 4) {
                                             Image(systemName: "exclamationmark.triangle.fill")
                                                 .foregroundColor(.orange)
-                                            Text("未授权辅助功能权限")
+                                            Text("未授权Accessibility permission")
                                                 .bold()
                                         }
                                         Text("请在“系统设置 -> 隐私与安全性 -> 辅助功能”中允许 MacHead，以使屏蔽键盘功能生效。")
@@ -1070,14 +1070,14 @@ struct PreferencesView: View {
                             }
 
                             SettingsCard(title: "多媒体设备") {
-                                SettingsRow("内置麦克风状态") {
-                                    Text(isMicrophoneMuted ? "已静音 🔇" : "正常 🎙️")
+                                SettingsRow("内置麦克风Status") {
+                                    Text(isMicrophoneMuted ? "已静音 🔇" : "Normal 🎙️")
                                         .fontWeight(.medium)
                                 }
 
                                 Divider().padding(.horizontal, 16)
 
-                                SettingsRow("无头模式下自动静音内置麦克风") {
+                                SettingsRow("Headless下Automatic静音内置麦克风") {
                                     Toggle("", isOn: Binding(
                                         get: { self.muteMicrophone },
                                         set: { newValue in
@@ -1109,7 +1109,7 @@ struct PreferencesView: View {
                                 Divider().padding(.horizontal, 16)
                                 
                                 SettingsRow("当前风扇转速") {
-                                    Text(smc.isFanless ? "无风扇 (被动散热)" : (smc.fanSpeed > 0 ? "\(smc.fanSpeed) RPM" : "正常 (系统自动控制)"))
+                                    Text(smc.isFanless ? "无风扇 (被动散热)" : (smc.fanSpeed > 0 ? "\(smc.fanSpeed) RPM" : "Normal (系统Automatic控制)"))
                                         .fontWeight(.semibold)
                                 }
                                 
@@ -1437,7 +1437,7 @@ struct PreferencesView: View {
                                 }
                             }
 
-                            SettingsCard(title: "FRP 内网穿透服务") {
+                            SettingsCard(title: "FRP Network Tunneling服务") {
                                 SettingsRow("启用 FRP 客户端 (frpc)") {
                                     HStack(spacing: 10) {
                                         if frpEnabled {
@@ -1482,7 +1482,7 @@ struct PreferencesView: View {
                         case .status:
 
                             SettingsCard(title: "显示器与 Headless 守护策略") {
-                                SettingsRow("断开全部外屏时自动恢复内屏") {
+                                SettingsRow("断开全部外屏时Automatic恢复内屏") {
                                     Toggle("", isOn: $autoExitOnDisconnect)
                                         .toggleStyle(.switch)
                                         .labelsHidden()
@@ -1490,7 +1490,7 @@ struct PreferencesView: View {
                                 
                                 Divider().padding(.horizontal, 16)
                                 
-                                SettingsRow("接入外屏时自动进入无头模式") {
+                                SettingsRow("接入外屏时Automatic进入Headless") {
                                     Toggle("", isOn: $autoRestoreOnConnect)
                                         .toggleStyle(.switch)
                                         .labelsHidden()
@@ -1499,7 +1499,7 @@ struct PreferencesView: View {
                             
                             SettingsCard(title: "当前连接的显示器") {
                                 if connectedDisplays.isEmpty {
-                                    SettingsRow("未检测到有效显示器") {
+                                    SettingsRow("未Detected有效显示器") {
                                         Text("无")
                                             .foregroundColor(.secondary)
                                     }
@@ -1615,10 +1615,10 @@ struct PreferencesView: View {
             }
         }
         
-        // ------------------ 电池休眠保护配置弹窗 ------------------
+        // ------------------ Battery休眠保护配置弹窗 ------------------
         .sheet(isPresented: $showBatteryConfig) {
             VStack(alignment: .leading, spacing: 16) {
-                Text("低电量电池保护配置")
+                Text("低电量Battery保护配置")
                     .font(.headline)
                     .fontWeight(.bold)
                 
@@ -1632,10 +1632,10 @@ struct PreferencesView: View {
                     }
 
                     HStack {
-                        Text("电源状态:")
+                        Text("电源Status:")
                             .foregroundColor(.secondary)
                             .frame(width: 90, alignment: .leading)
-                        Text(battery.powerState == "AC Power" ? "外接电源直供" : "电池供电中")
+                        Text(battery.powerState == "AC Power" ? "外接电源直供" : "Battery供电中")
                             .fontWeight(.medium)
                     }
                     
@@ -1817,7 +1817,7 @@ struct PreferencesView: View {
                         
                         HStack {
                             Button("发送测试通知") {
-                                NotificationService.shared.sendAlert(type: .test, title: "连接测试", body: "这是一条来自 MacHead 的集成状态测试通知，连接正常！", force: true)
+                                NotificationService.shared.sendAlert(type: .test, title: "连接测试", body: "这是一条来自 MacHead 的集成Status测试通知，连接Normal！", force: true)
                             }
                             .buttonStyle(.bordered)
                             Spacer()
@@ -1866,7 +1866,7 @@ struct PreferencesView: View {
                     
                     Spacer()
                     
-                    Button("测试连接并启用") {
+                    Button("Test connection并启用") {
                         self.nezhaEnabled = true
                         UserDefaults.standard.set(true, forKey: "nezhaEnabled")
                         NezhaAgentService.shared.stop()
@@ -1884,7 +1884,7 @@ struct PreferencesView: View {
                         Circle()
                             .fill(nezhaStatusColor)
                             .frame(width: 8, height: 8)
-                        Text("当前状态:")
+                        Text("当前Status:")
                             .font(.caption)
                             .fontWeight(.semibold)
                         Text(nezhaStatusBadgeText)
@@ -2035,8 +2035,8 @@ struct PreferencesView: View {
         }
         
         // ------------------ Uptime Kuma 配置弹窗 ------------------
-        // ------------------ FRP 内网穿透配置弹窗 ------------------
-        // ------------------ FRP 内网穿透配置弹窗 ------------------
+        // ------------------ FRP Network Tunneling配置弹窗 ------------------
+        // ------------------ FRP Network Tunneling配置弹窗 ------------------
         
         // ------------------ Cloudflare Tunnel 配置弹窗 ------------------
         .sheet(isPresented: $showCloudflareConfig) {
@@ -2050,7 +2050,7 @@ struct PreferencesView: View {
                     Spacer()
                 }
                 
-                Text("输入您的 Cloudflare Tunnel 运行 Token。应用将在后台自动调用内置的 cloudflared 客户端建立免公网 IP 穿透隧道。")
+                Text("输入您的 Cloudflare Tunnel 运行 Token。应用将在后台Automatic调用内置的 cloudflared 客户端建立免公网 IP 穿透隧道。")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     
@@ -2100,20 +2100,20 @@ struct PreferencesView: View {
                                 ProgressView()
                                     .controlSize(.small)
                             }
-                            Text(isCloudflareTesting ? "正在测试..." : "测试连接")
+                            Text(isCloudflareTesting ? "Testing..." : "Test connection")
                         }
                     }
                     .disabled(isCloudflareTesting || cloudflareToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     
                     Spacer()
                     
-                    Button("取消") {
+                    Button("Cancel") {
                         self.cloudflareTestResult = nil
                         self.showCloudflareConfig = false
                     }
                     .buttonStyle(.plain)
                     
-                    Button("保存并应用") {
+                    Button("Save & Apply") {
                         self.cloudflareTestResult = nil
                         if self.isCloudflareConfigModified {
                             self.isCloudflareConfigModified = false
@@ -2142,7 +2142,7 @@ struct PreferencesView: View {
                     Spacer()
                 }
                 
-                Text("微软官方提供的安全跨网穿透隧道。通过 Azure Relay 边缘网络建立公网访问，支持自动端口多路复用与 GitHub 身份鉴权。")
+                Text("微软官方提供的安全跨网穿透隧道。通过 Azure Relay 边缘网络建立公网访问，支持Automatic端口多路复用与 GitHub 身份鉴权。")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
@@ -2170,7 +2170,7 @@ struct PreferencesView: View {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.orange)
-                            Text("未检测到 devtunnel CLI。该组件不随 App 内置，点击右侧按钮从微软官方下载安装。")
+                            Text("未Detected devtunnel CLI。该组件不随 App 内置，点击右侧按钮从微软官方Download安装。")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -2203,7 +2203,7 @@ struct PreferencesView: View {
                                 .foregroundColor(.red)
                         }
 
-                        Text("也可自行安装后重启 App（如 brew install --cask devtunnel），MacHead 会自动识别 PATH 中的命令。")
+                        Text("也可自行安装后重启 App（如 brew install --cask devtunnel)，MacHead 会Automatic识别 PATH 中的命令。")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -2222,12 +2222,12 @@ struct PreferencesView: View {
                         if let user = devTunnelLoggedInUser {
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundColor(.green)
-                            Text("已登录: \(user)")
+                            Text("已Log in: \(user)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)
                             Spacer()
-                            Button("退出登录") {
+                            Button("Log out") {
                                 DevTunnelService.shared.logout()
                                 self.devTunnelLoggedInUser = nil
                             }
@@ -2235,7 +2235,7 @@ struct PreferencesView: View {
                         } else {
                             Image(systemName: "person.crop.circle.badge.questionmark")
                                 .foregroundColor(.orange)
-                            Text("尚未登录账号 (可通过浏览器一键授权)")
+                            Text("尚未Log in账号 (可通过浏览器一键授权)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -2250,7 +2250,7 @@ struct PreferencesView: View {
                                     if isDevTunnelLoggingIn {
                                         ProgressView().controlSize(.small)
                                     }
-                                    Text("登录 GitHub 账号")
+                                    Text("Log in GitHub 账号")
                                 }
                             }
                             .controlSize(.small)
@@ -2264,14 +2264,14 @@ struct PreferencesView: View {
                 // Quota & Traffic Usage Card
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
-                        Text("月度流量与配额状态")
+                        Text("月度流量与配额Status")
                             .font(.caption)
                             .fontWeight(.semibold)
                         Spacer()
                         if isQueryingLimits {
                             ProgressView().controlSize(.small)
                         } else {
-                            Button("刷新配额") {
+                            Button("Refresh配额") {
                                 self.isQueryingLimits = true
                                 DevTunnelService.shared.queryUserLimits { info in
                                     self.isQueryingLimits = false
@@ -2330,7 +2330,7 @@ struct PreferencesView: View {
                         get: { self.devTunnelMode },
                         set: { self.devTunnelMode = $0; self.isDevTunnelConfigModified = true }
                     )) {
-                        Text("账号自动模式 (推荐)").tag("login")
+                        Text("账号Automatic模式 (推荐)").tag("login")
                         Text("Access Token 模式").tag("token")
                     }
                     .pickerStyle(.segmented)
@@ -2481,20 +2481,20 @@ struct PreferencesView: View {
                             if isDevTunnelTesting {
                                 ProgressView().controlSize(.small)
                             }
-                            Text(isDevTunnelTesting ? "正在测试..." : "测试连接")
+                            Text(isDevTunnelTesting ? "Testing..." : "Test connection")
                         }
                     }
                     .disabled(isDevTunnelTesting)
                     
                     Spacer()
                     
-                    Button("取消") {
+                    Button("Cancel") {
                         self.devTunnelTestResult = nil
                         self.showDevTunnelConfig = false
                     }
                     .buttonStyle(.plain)
                     
-                    Button("保存并应用") {
+                    Button("Save & Apply") {
                         self.devTunnelTestResult = nil
                         if self.isDevTunnelConfigModified {
                             self.isDevTunnelConfigModified = false
@@ -2518,7 +2518,7 @@ struct PreferencesView: View {
         .sheet(isPresented: $showFrpConfig) {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
-                    Text("FRP 内网穿透配置 (frpc)")
+                    Text("FRP Network Tunneling配置 (frpc)")
                         .font(.headline)
                         .fontWeight(.bold)
                     
@@ -2540,7 +2540,7 @@ struct PreferencesView: View {
                     
                     Spacer()
                     
-                    Button("测试连接并启用") {
+                    Button("Test connection并启用") {
                         self.frpEnabled = true
                         UserDefaults.standard.set(true, forKey: "frpEnabled")
                         FrpService.saveRules(self.frpRules)
@@ -2559,7 +2559,7 @@ struct PreferencesView: View {
                         Circle()
                             .fill(frpStatusColor)
                             .frame(width: 8, height: 8)
-                        Text("当前状态:")
+                        Text("当前Status:")
                             .font(.caption)
                             .fontWeight(.semibold)
                         Text(frpStatusBadgeText)
@@ -2642,7 +2642,7 @@ struct PreferencesView: View {
                                     Text("frpc 路径:")
                                         .foregroundColor(.secondary)
                                         .frame(width: 90, alignment: .leading)
-                                    TextField("自动使用内置 frpc 或系统路径", text: $frpBinaryPath)
+                                    TextField("Automatic使用内置 frpc 或系统路径", text: $frpBinaryPath)
                                         .textFieldStyle(.roundedBorder)
                                         .onChange(of: frpBinaryPath) { newValue in
                                             UserDefaults.standard.set(newValue, forKey: "frpBinaryPath")
@@ -2653,7 +2653,7 @@ struct PreferencesView: View {
                                         panel.canChooseFiles = true
                                         panel.canChooseDirectories = false
                                         panel.allowsMultipleSelection = false
-                                        panel.message = "选择 frpc 可执行文件"
+                                        panel.message = "选择 frpc 可执行Files"
                                         panel.prompt = "选择"
                                         if panel.runModal() == .OK, let url = panel.url {
                                             self.frpBinaryPath = url.path
@@ -2841,7 +2841,7 @@ struct PreferencesView: View {
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("配置文件内容 (支持 TOML / INI 语法):")
+                        Text("配置Files内容 (支持 TOML / INI 语法):")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -3050,7 +3050,7 @@ struct PreferencesView: View {
 
         self.connectedDisplays = displays.compactMap { id in
             let isBuiltIn = CGDisplayIsBuiltin(id) != 0
-            // 虚拟/软件显示屏（unkn virt 等）不作为外接显示器列出，与菜单栏计数口径一致
+            // 虚拟/软件显示屏（unkn virt 等)不作为外接显示器列出，与菜单栏计数口径一致
             if !isBuiltIn && DisplayManager.isVirtualDisplay(id) { return nil }
             let vendorID = CGDisplayVendorNumber(id)
             let isApple = vendorID == 0x05AC // Apple's Vendor ID

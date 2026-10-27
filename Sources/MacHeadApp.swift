@@ -9,12 +9,12 @@ struct MacHeadApp: App {
         }
         .commands {
             CommandGroup(replacing: .appSettings) {
-                Button("偏好设置...") {
+                Button("Preferences...") {
                     appDelegate.openPreferences()
                 }
                 .keyboardShortcut(",", modifiers: .command)
 
-                Button("检查更新...") {
+                Button("Check for Updates...") {
                     UpdateManager.shared.checkForUpdates(silent: false)
                 }
             }

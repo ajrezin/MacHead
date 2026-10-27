@@ -1,6 +1,6 @@
 import Cocoa
 
-/// 更新元数据模型，描述云端的最新版本信息
+/// Update metadata model describing the latest version information from the cloud
 struct UpdateMetadata: Codable {
     let version: String
     let build: Int
@@ -26,12 +26,12 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
         super.init()
     }
     
-    /// 获取当前应用的版本号
+    /// Get the current app version
     var currentVersion: String {
         return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     }
     
-    /// 获取当前应用的构建号
+    /// Get the current app build number
     var currentBuild: Int {
         if let buildStr = Bundle.main.infoDictionary?["CFBundleVersion"] as? String,
            let buildInt = Int(buildStr) {
@@ -40,12 +40,12 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
         return 1
     }
     
-    /// 检查更新
+    /// Check for updates
     func checkForUpdates(silent: Bool) {
         guard !isChecking else { return }
         isChecking = true
         
-        // 动态附加当前时间戳作为防缓存 Query 参数，强行穿透本地 URLSession 缓存与云端 CDN 边缘节点缓存
+        // Append a timestamp as a cache-busting query parameter to bypass local URLSession cache and Cloudflare CDN edge cache
         var components = URLComponents(url: appcastURL, resolvingAgainstBaseURL: false)
         components?.queryItems = [URLQueryItem(name: "t", value: "\(Int(Date().timeIntervalSince1970))")]
         guard let finalURL = components?.url else {
@@ -60,14 +60,14 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
             if let error = error {
                 print("OTA Check: Failed to fetch metadata: \(error)")
                 if !silent {
-                    self.showErrorAlert(message: "无法连接到更新服务器，请稍后重试。\n原因：\(error.localizedDescription)")
+                    self.showErrorAlert(message: "Unable to connect to the update server. Please try again later.\nReason: \(error.localizedDescription)")
                 }
                 return
             }
             
             guard let data = data else {
                 if !silent {
-                    self.showErrorAlert(message: "服务器返回了空数据。")
+                    self.showErrorAlert(message: "The server returned empty data.")
                 }
                 return
             }
@@ -92,7 +92,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
             } catch {
                 print("OTA Check: Parsing error: \(error)")
                 if !silent {
-                    self.showErrorAlert(message: "解析更新数据失败。")
+                    self.showErrorAlert(message: "Failed to parse update data.")
                 }
             }
         }
@@ -109,15 +109,15 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
         return false
     }
     
-    /// 发现新版本时的弹窗提示
+    /// Alert shown when a new version is discovered
     private func showUpdateAlert(metadata: UpdateMetadata) {
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "发现新版本 MacHead v\(metadata.version)"
-            alert.informativeText = "发布日期: \(metadata.pubDate)\n\n更新日志:\n\(metadata.releaseNotes)"
+            alert.messageText = "A new MacHead version is available: v\(metadata.version)"
+            alert.informativeText = "Release date: \(metadata.pubDate)\n\nRelease notes:\n\(metadata.releaseNotes)"
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "立即更新")
-            alert.addButton(withTitle: "稍后提示我")
+            alert.addButton(withTitle: "Update now")
+            alert.addButton(withTitle: "Remind me later")
             
             NSApp.activate(ignoringOtherApps: true)
             let response = alert.runModal()
@@ -127,7 +127,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    /// 启动应用内下载
+    /// Start an in-app download
     private func startDownload(metadata: UpdateMetadata) {
         guard let url = URL(string: metadata.url) else { return }
         self.activeMetadata = metadata
@@ -137,13 +137,13 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
         self.downloadTask = session.downloadTask(with: url)
         self.downloadTask?.resume()
         
-        // 显示下载进度条弹窗
+        // 显示Download进度条弹窗
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "正在下载 MacHead v\(metadata.version)..."
-            alert.informativeText = "正在从安全服务器下载最新的 DMG 安装包，请稍候。"
+            alert.messageText = "Downloading MacHead v\(metadata.version)..."
+            alert.informativeText = "Downloading the latest secure DMG installer from the server. Please wait."
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "取消")
+            alert.addButton(withTitle: "Cancel")
             
             let indicator = NSProgressIndicator(frame: NSRect(x: 0, y: 0, width: 300, height: 16))
             indicator.isIndeterminate = false
@@ -155,7 +155,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
             self.progressAlert = alert
             self.progressIndicator = indicator
             
-            // 使用 beginSheetModal 挂载抽屉弹窗（非阻塞主线程，保证下载进度实时渲染）
+            // 使用 beginSheetModal 挂载抽屉弹窗（非阻塞主线程，保证Download进度实时渲染)
             if let window = NSApp.keyWindow {
                 alert.beginSheetModal(for: window) { response in
                     if response == .alertFirstButtonReturn {
@@ -182,12 +182,12 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
         
         DispatchQueue.main.async {
             self.progressIndicator?.doubleValue = percent
-            self.progressAlert?.informativeText = String(format: "已下载: %.1f%%", percent)
+            self.progressAlert?.informativeText = String(format: "Downloaded: %.1f%%", percent)
         }
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        // 关闭进度条弹窗
+        // Close the progress dialog
         DispatchQueue.main.async {
             if let alert = self.progressAlert {
                 if let parent = alert.window.sheetParent {
@@ -199,7 +199,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
             }
         }
         
-        // 将下载完的临时文件拷贝到安全的临时存储路径
+        // Copy the downloaded temporary file into a secure temporary storage location
         let tempDir = NSTemporaryDirectory()
         let destinationURL = URL(fileURLWithPath: tempDir).appendingPathComponent("MacHeadUpdate.dmg")
         
@@ -217,7 +217,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         DispatchQueue.main.async {
-            // 如果下载出错并且不是用户手动取消
+            // 如果Download出错并且不是用户手动Cancel
             if let error = error {
                 let nsError = error as NSError
                 if nsError.domain != NSURLErrorDomain || nsError.code != NSURLErrorCancelled {
@@ -229,7 +229,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
                             alert.window.close()
                         }
                     }
-                    self.handleInstallationFailure(reason: "网络下载失败：\(error.localizedDescription)")
+                    self.handleInstallationFailure(reason: "网络Download失败：\(error.localizedDescription)")
                 }
             }
         }
@@ -262,7 +262,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
             let mountedAppPath = "\(mountPoint)/MacHead.app"
             guard fileManager.fileExists(atPath: mountedAppPath) else {
                 self.cleanupMount(mountPoint: mountPoint)
-                self.handleInstallationFailure(reason: "DMG 中未找到 MacHead.app 应用程序包。")
+                self.handleInstallationFailure(reason: "DMG 中未找到 MacHead.app Applications包。")
                 return
             }
             
@@ -280,7 +280,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
                 self.runShellCommand("/usr/bin/xattr", arguments: ["-cr", targetAppPath])
             } catch {
                 self.cleanupMount(mountPoint: mountPoint)
-                self.handleInstallationFailure(reason: "文件覆盖失败：\(error.localizedDescription)")
+                self.handleInstallationFailure(reason: "Files覆盖失败：\(error.localizedDescription)")
                 return
             }
             
@@ -323,14 +323,14 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
             
             let alert = NSAlert()
             alert.messageText = "更新安装失败"
-            alert.informativeText = "\(reason)\n\n系统将自动为您打开浏览器下载，请手动下载 DMG 拖拽覆盖安装。"
+            alert.informativeText = "\(reason)\n\n系统将Automatic为您打开浏览器Download，请手动Download DMG 拖拽覆盖安装。"
             alert.alertStyle = .warning
             alert.addButton(withTitle: "确定")
             
             NSApp.activate(ignoringOtherApps: true)
             alert.runModal()
             
-            // 降级兜底方案：浏览器打开下载
+            // 降级兜底方案：浏览器打开Download
             if let metadata = self.activeMetadata, let url = URL(string: metadata.url) {
                 NSWorkspace.shared.open(url)
             }
@@ -352,7 +352,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
                 let appPath = "/Applications/MacHead.app"
                 let pid = ProcessInfo.processInfo.processIdentifier
                 
-                // 启动后台守护 shell 进程，等待旧进程完全退出后再 open 启动新版本，防止 macOS 激活冲突
+                // 启动后台守护 shell 进程，等待旧进程完全Quit后再 open 启动新版本，防止 macOS 激活冲突
                 let process = Process()
                 process.launchPath = "/bin/sh"
                 process.arguments = ["-c", "while kill -0 \(pid) 2>/dev/null; do sleep 0.1; done; open \"\(appPath)\""]
@@ -379,7 +379,7 @@ final class UpdateManager: NSObject, URLSessionDownloadDelegate {
         }
     }
     
-    /// 错误状态提示
+    /// 错误Status提示
     private func showErrorAlert(message: String) {
         DispatchQueue.main.async {
             let alert = NSAlert()

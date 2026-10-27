@@ -237,15 +237,15 @@ func runGatedLoginShell() {
 	expectedHash := strings.ToLower(strings.TrimSpace(os.Getenv("MACHEAD_TERM_PASS_HASH")))
 	if expectedHash != "" && os.Getenv("MACHEAD_PASS_VERIFIED") != "1" {
 		timer := time.AfterFunc(45*time.Second, func() {
-			_, _ = os.Stdout.WriteString("\r\n⛔ 口令验证超时，连接已断开。\r\n")
+			_, _ = os.Stdout.WriteString("\r\n⛔ Password verification timed out; connection closed.\r\n")
 			os.Exit(1)
 		})
-		_, _ = os.Stdout.WriteString("\r\n🔒 MacHead 远程终端已启用访问口令保护\r\n")
+		_, _ = os.Stdout.WriteString("\r\n🔒 MacHead Remote Terminal has access password protection enabled\r\n")
 		authenticated := false
 		reader := bufio.NewReader(os.Stdin)
 		fd := int(os.Stdin.Fd())
 		for attempt := 1; attempt <= 3; attempt++ {
-			_, _ = os.Stdout.WriteString("请输入访问口令 (Password): ")
+			_, _ = os.Stdout.WriteString("Enter access password (Password): ")
 			var rawPass []byte
 			var err error
 			if term.IsTerminal(fd) {
@@ -277,7 +277,7 @@ func runGatedLoginShell() {
 			_, _ = os.Stdout.WriteString("⛔ 验证失败次数过多，连接已断开。\r\n")
 			os.Exit(1)
 		}
-		_, _ = os.Stdout.WriteString("✅ 口令验证通过，正在进入终端...\r\n\r\n")
+		_, _ = os.Stdout.WriteString("✅ 口令验证通过，正在进入Terminal...\r\n\r\n")
 	}
 
 	signal.Reset(syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTSTP)
@@ -617,7 +617,7 @@ func serveWebRTCPTYChannel(dc *webrtc.DataChannel, label string, execArgs []stri
 
 		go func(c *exec.Cmd) {
 			_ = c.Wait()
-			cleanup("终端会话已正常退出")
+			cleanup("Terminal会话已NormalQuit")
 		}(cmd)
 
 		return ptmx, nil
@@ -625,7 +625,7 @@ func serveWebRTCPTYChannel(dc *webrtc.DataChannel, label string, execArgs []stri
 
 	dc.OnOpen(func() {
 		if _, err := startPTY(); err != nil {
-			cleanup(fmt.Sprintf("无法启动本地终端: %v", err))
+			cleanup(fmt.Sprintf("无法启动本地Terminal: %v", err))
 			return
 		}
 

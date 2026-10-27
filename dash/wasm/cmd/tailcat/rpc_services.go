@@ -171,7 +171,7 @@ func handleMacHeadRPC(req rpcRequest) rpcResponse {
 		providedHash := strings.ToLower(strings.TrimSpace(req.PassHash))
 		if len(providedHash) != len(expectedHash) ||
 			subtle.ConstantTimeCompare([]byte(providedHash), []byte(expectedHash)) != 1 {
-			resp.Error = "NEED_PASSWORD: 该设备已开启访问口令保护，请输入访问口令"
+			resp.Error = "NEED_PASSWORD: This device has access password protection enabled; please enter the access password"
 			return resp
 		}
 	}
@@ -240,10 +240,10 @@ func handleMacHeadRPC(req rpcRequest) rpcResponse {
 
 		home := resolveUserHome()
 		quickPaths := []quickPathEntry{
-			{Name: "主目录", Path: home, Icon: "🏠"},
-			{Name: "桌面", Path: filepath.Join(home, "Desktop"), Icon: "🖥️"},
-			{Name: "下载", Path: filepath.Join(home, "Downloads"), Icon: "📥"},
-			{Name: "文稿", Path: filepath.Join(home, "Documents"), Icon: "📄"},
+			{Name: "Home", Path: home, Icon: "🏠"},
+			{Name: "Desktop", Path: filepath.Join(home, "Desktop"), Icon: "🖥️"},
+			{Name: "Download", Path: filepath.Join(home, "Downloads"), Icon: "📥"},
+			{Name: "Documents", Path: filepath.Join(home, "Documents"), Icon: "📄"},
 		}
 		if st, err := os.Stat(filepath.Join(home, "project")); err == nil && st.IsDir() {
 			quickPaths = append(quickPaths, quickPathEntry{
@@ -254,7 +254,7 @@ func handleMacHeadRPC(req rpcRequest) rpcResponse {
 		}
 		quickPaths = append(quickPaths,
 			quickPathEntry{Name: "应用", Path: "/Applications", Icon: "🚀"},
-			quickPathEntry{Name: "根目录", Path: "/", Icon: "💿"},
+			quickPathEntry{Name: "Root /", Path: "/", Icon: "💿"},
 		)
 
 		resp.OK = true
@@ -283,7 +283,7 @@ func handleMacHeadRPC(req rpcRequest) rpcResponse {
 		}
 		info, err := os.Stat(targetPath)
 		if err != nil {
-			resp.Error = fmt.Sprintf("文件不存在或无法访问: %v", err)
+			resp.Error = fmt.Sprintf("Files不存在或无法访问: %v", err)
 			return resp
 		}
 		if info.IsDir() {
@@ -295,12 +295,12 @@ func handleMacHeadRPC(req rpcRequest) rpcResponse {
 			maxLimit = 16 * 1024 * 1024
 		}
 		if info.Size() > maxLimit {
-			resp.Error = fmt.Sprintf("文件过大 (%d MB)，超过单次传输限制 (%d MB)", info.Size()/(1024*1024), maxLimit/(1024*1024))
+			resp.Error = fmt.Sprintf("Files过大 (%d MB)，超过单次传输limit (%d MB)", info.Size()/(1024*1024), maxLimit/(1024*1024))
 			return resp
 		}
 		data, err := os.ReadFile(targetPath)
 		if err != nil {
-			resp.Error = fmt.Sprintf("读取文件失败: %v", err)
+			resp.Error = fmt.Sprintf("读取Files失败: %v", err)
 			return resp
 		}
 		isText := isLikelyText(data)
@@ -353,7 +353,7 @@ func handleMacHeadRPC(req rpcRequest) rpcResponse {
 		}
 		f, err := os.OpenFile(targetPath, flags, 0644)
 		if err != nil {
-			resp.Error = fmt.Sprintf("写入文件失败: %v", err)
+			resp.Error = fmt.Sprintf("写入Files失败: %v", err)
 			return resp
 		}
 		_, writeErr := f.Write(rawBytes)
@@ -363,7 +363,7 @@ func handleMacHeadRPC(req rpcRequest) rpcResponse {
 			return resp
 		}
 		if closeErr != nil {
-			resp.Error = fmt.Sprintf("保存文件失败: %v", closeErr)
+			resp.Error = fmt.Sprintf("保存Files失败: %v", closeErr)
 			return resp
 		}
 		info, _ := os.Stat(targetPath)

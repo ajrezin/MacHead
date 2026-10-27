@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
-// 配置 Vite 根路径与中英双语多页面入口
+// Configure the Vite base path and the bilingual multi-page entry points
 export default defineConfig({
   base: '/',
   build: {

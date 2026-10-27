@@ -178,13 +178,13 @@ function formatTransportBadge(mode) {
 }
 
 const QUICK_PATH_EN_MAP = {
-  主目录: 'Home',
-  桌面: 'Desktop',
-  下载: 'Downloads',
-  文稿: 'Documents',
-  应用程序: 'Applications',
-  根目录: 'Root /',
-  '根目录 /': 'Root /',
+  Home: 'Home',
+  Desktop: 'Desktop',
+  Download: 'Downloads',
+  Documents: 'Documents',
+  Applications: 'Applications',
+  Root /: 'Root /',
+  'Root / /': 'Root /',
 };
 
 function localizeQuickPathName(name) {

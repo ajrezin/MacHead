@@ -56,13 +56,13 @@ public enum DevTunnelStatus: Equatable {
     public var displayText: String {
         switch self {
         case .stopped:
-            return "未启用 Dev Tunnels 穿透"
+            return "Dev Tunnels is not enabled"
         case .connecting:
-            return "正在向微软 Azure 申请穿透隧道..."
+            return "Requesting a tunnel from Microsoft Azure..."
         case .connected(let webUrl, _):
-            return "已成功建立 Dev Tunnels: \(webUrl)"
+            return "Dev Tunnels connected successfully: \(webUrl)"
         case .error(let msg):
-            return "穿透失败: \(msg)"
+            return "Tunnel failed: \(msg)"
         }
     }
 }
@@ -95,8 +95,8 @@ public final class DevTunnelService {
         }
         
         let defaultRules = [
-            DevTunnelPortRule(name: "MacHead Web 控制台", port: "\(WebServer.shared.currentPort)", protocolType: "http", isEnabled: true),
-            DevTunnelPortRule(name: "SSH 远程登录", port: "22", protocolType: "auto", isEnabled: true)
+            DevTunnelPortRule(name: "MacHead web console", port: "\(WebServer.shared.currentPort)", protocolType: "http", isEnabled: true),
+            DevTunnelPortRule(name: "SSH remote login", port: "22", protocolType: "auto", isEnabled: true)
         ]
         savePortRules(defaultRules)
         return defaultRules
@@ -145,18 +145,18 @@ public final class DevTunnelService {
         return nil
     }
 
-    /// MacHead 在用户 Application Support 下的根目录（应用级用户组件的统一落点，卸载时整体删除）
+    /// MacHead 在用户 Application Support 下的Root /（应用级用户组件的统一落点，卸载时整体删除)
     public static var userInstallRoot: String {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         return appSupport.appendingPathComponent("MacHead", isDirectory: true).path
     }
 
-    /// devtunnel CLI 的用户级安装目录（无需 sudo，删除 App 目录即完成卸载）
+    /// devtunnel CLI 的用户级安装目录（无需 sudo，删除 App 目录即完成卸载)
     public static var userInstallDirectory: String {
         return userInstallRoot + "/bin"
     }
 
-    /// 从微软官方直链下载 devtunnel CLI 并安装到用户目录（应用内一键安装）
+    /// 从微软官方直链Download devtunnel CLI 并安装到用户目录（应用内一键安装)
     /// completion 成功携带安装路径，失败携带错误
     public func installBinary(completion: @escaping (Result<String, Error>) -> Void) {
         #if arch(arm64)
@@ -170,17 +170,17 @@ public final class DevTunnelService {
             let tempDir = fm.temporaryDirectory.appendingPathComponent("machead-devtunnel-\(UUID().uuidString)", isDirectory: true)
 
             do {
-                // 1. 下载官方 ZIP 到临时目录
+                // 1. Download官方 ZIP 到临时目录
                 guard let url = URL(string: downloadURLString),
                       let data = try? Data(contentsOf: url), !data.isEmpty else {
                     throw NSError(domain: "DevTunnelInstall", code: -4,
-                                  userInfo: [NSLocalizedDescriptionKey: "下载失败，请检查网络连接"])
+                                  userInfo: [NSLocalizedDescriptionKey: "Download失败，请检查网络连接"])
                 }
                 try fm.createDirectory(at: tempDir, withIntermediateDirectories: true)
                 let zipDest = tempDir.appendingPathComponent("devtunnel.zip")
                 try data.write(to: zipDest)
 
-                // 2. 使用系统自带 ditto 解压（保留可执行权限）
+                // 2. 使用系统自带 ditto 解压（保留可执行权限)
                 let p = Process()
                 p.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
                 p.arguments = ["-x", "-k", zipDest.path, tempDir.path]
@@ -191,19 +191,19 @@ public final class DevTunnelService {
                                   userInfo: [NSLocalizedDescriptionKey: "解压官方压缩包失败"])
                 }
 
-                // 3. 校验 Mach-O 文件头，防止将错误页面误认为二进制
+                // 3. 校验 Mach-O Files头，防止将错误页面误认为二进制
                 let extracted = tempDir.appendingPathComponent("devtunnel")
                 guard let handle = try? FileHandle(forReadingFrom: extracted),
                       let header = try? handle.read(upToCount: 4), header.count == 4 else {
                     throw NSError(domain: "DevTunnelInstall", code: -2,
-                                  userInfo: [NSLocalizedDescriptionKey: "下载内容无效，请稍后重试"])
+                                  userInfo: [NSLocalizedDescriptionKey: "Download内容无效，请稍后重试"])
                 }
                 try? handle.close()
                 let bytes = [UInt8](header)
                 // 64-bit Mach-O 魔数 (0xFEEDFACF, LE/BE)
                 guard bytes == [0xCF, 0xFA, 0xED, 0xFE] || bytes == [0xFE, 0xED, 0xFA, 0xCF] else {
                     throw NSError(domain: "DevTunnelInstall", code: -3,
-                                  userInfo: [NSLocalizedDescriptionKey: "下载内容不是有效的 macOS 可执行文件"])
+                                  userInfo: [NSLocalizedDescriptionKey: "Download内容不是有效的 macOS 可执行Files"])
                 }
 
                 // 4. 安装到用户目录并赋予执行权限
@@ -311,7 +311,7 @@ public final class DevTunnelService {
     
     public func loginWithBrowser(provider: String = "github", completion: @escaping (Bool, String) -> Void) {
         guard let path = findBinaryPath() else {
-            completion(false, "未找到 devtunnel 可执行文件")
+            completion(false, "未找到 devtunnel 可执行Files")
             return
         }
         
@@ -332,7 +332,7 @@ public final class DevTunnelService {
                 let out = String(data: data, encoding: .utf8) ?? ""
                 if p.terminationStatus == 0 {
                     DispatchQueue.main.async {
-                        completion(true, "登录成功")
+                        completion(true, "Log in成功")
                     }
                 } else {
                     DispatchQueue.main.async {
@@ -366,7 +366,7 @@ public final class DevTunnelService {
         }
         
         guard let path = findBinaryPath() else {
-            currentStatus = .error(message: "未找到 devtunnel 可执行文件")
+            currentStatus = .error(message: "未找到 devtunnel 可执行Files")
             return
         }
         
@@ -390,7 +390,7 @@ public final class DevTunnelService {
             args.append(contentsOf: ["-t", token])
         } else {
             if checkUserLoginStatus() == nil && token.isEmpty {
-                currentStatus = .error(message: "尚未登录微软/GitHub 账号，请在设定中点击登录或填入 Token")
+                currentStatus = .error(message: "尚未Log in微软/GitHub 账号，请在设定中点击Log in或填入 Token")
                 return
             }
         }
@@ -436,7 +436,7 @@ public final class DevTunnelService {
             
             DispatchQueue.main.async {
                 if self?.currentStatus == .connecting {
-                    self?.currentStatus = .error(message: "进程退出 (Code \(proc.terminationStatus))")
+                    self?.currentStatus = .error(message: "进程Quit (Code \(proc.terminationStatus))")
                 }
             }
             
@@ -495,7 +495,7 @@ public final class DevTunnelService {
         }
         
         if lower.contains("unauthorized") || lower.contains("not permitted") || lower.contains("request not permitted") {
-            currentStatus = .error(message: "鉴权失败：请点击「登录 GitHub 账号」或填入有效 Token")
+            currentStatus = .error(message: "鉴权失败：请点击「Log in GitHub 账号」或填入有效 Token")
         } else if lower.contains("connection refused") || lower.contains("failed to connect") {
             currentStatus = .error(message: "无法连接微软 Azure 边缘中继节点")
         }
@@ -503,7 +503,7 @@ public final class DevTunnelService {
     
     public func testConnection(mode: String, tunnelId: String, token: String, allowAnonymous: Bool, rules: [DevTunnelPortRule], completion: @escaping (Bool, String) -> Void) {
         guard let path = findBinaryPath() else {
-            completion(false, "未找到 devtunnel 可执行文件")
+            completion(false, "未找到 devtunnel 可执行Files")
             return
         }
         
@@ -519,7 +519,7 @@ public final class DevTunnelService {
             args.append(contentsOf: ["-t", token])
         } else {
             if checkUserLoginStatus() == nil && token.isEmpty {
-                completion(false, "未检测到微软/GitHub 登录凭据，请先点击「登录 GitHub 账号」")
+                completion(false, "未Detected微软/GitHub Log in凭据，请先点击「Log in GitHub 账号」")
                 return
             }
         }

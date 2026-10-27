@@ -1,7 +1,7 @@
 import Foundation
 import Cocoa
 
-/// MacHead 核心指标与遥测数据管理单例
+/// MacHead core metrics and telemetry manager singleton
 final class TelemetryManager {
     static let shared = TelemetryManager()
     
@@ -10,7 +10,7 @@ final class TelemetryManager {
     
     private init() {}
     
-    /// 获取或生成本地匿名设备 UUID（无敏感设备 HWID，保护隐私）
+    /// Get or generate a local anonymous device UUID（无敏感设备 HWID，保护隐私)
     var anonymousID: String {
         let key = "MacHead_Anonymous_Device_ID"
         if let existing = UserDefaults.standard.string(forKey: key) {
@@ -21,7 +21,7 @@ final class TelemetryManager {
         return newID
     }
     
-    /// 获取系统已运行时间（Uptime，单位：秒）
+    /// Get system uptime（Uptime，单位：秒)
     var systemUptimeSeconds: Int {
         var bootTime = timeval()
         var size = MemoryLayout<timeval>.size
@@ -33,7 +33,7 @@ final class TelemetryManager {
         return 0
     }
     
-    /// 构建全量快照 Payload
+    /// Build a complete snapshot payload
     func buildPayload(event: String, extraInfo: [String: Any] = [:]) -> [String: Any] {
         let isAccessibilityGranted = AXIsProcessTrusted()
         
@@ -69,9 +69,9 @@ final class TelemetryManager {
         return payload
     }
     
-    /// 异步发送打点事件（用户可在偏好设置中关闭匿名使用统计）
+    /// Send telemetry events asynchronously（用户可在偏好设置中Close匿名使用统计)
     func track(event: String, extraInfo: [String: Any] = [:]) {
-        // 未注册过该键的存量用户保持默认开启；显式关闭后不再发送任何事件
+        // Existing users who have not registered this key keep the default enabled state；After an explicit disable, no further events are sent
         if UserDefaults.standard.object(forKey: "telemetryEnabled") == nil {
             UserDefaults.standard.register(defaults: ["telemetryEnabled": true])
         }

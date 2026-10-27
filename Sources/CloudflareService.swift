@@ -13,11 +13,11 @@ public enum CloudflareStatus: Equatable {
     public var displayText: String {
         switch self {
         case .stopped:
-            return "未启用 Cloudflare Tunnel 穿透"
+            return "Cloudflare Tunnel is not enabled"
         case .connecting:
             return "正在建立 Cloudflare 穿透隧道..."
         case .connected:
-            return "已成功建立 Cloudflare 穿透隧道"
+            return "Successfully established Cloudflare 穿透隧道"
         case .error(let msg):
             return "穿透失败: \(msg)"
         }
@@ -92,13 +92,13 @@ public final class CloudflareService {
         
         guard let path = findBinaryPath() else {
             print("CloudflareService: Binary cloudflared not found")
-            currentStatus = .error(message: "未找到 cloudflared 可执行文件 (请安装 brew install cloudflared 或手动指定路径)")
+            currentStatus = .error(message: "cloudflared executable not found (install with brew install cloudflared or specify the path manually)")
             return
         }
         
         let token = (defaults.string(forKey: "cloudflareToken") ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if token.isEmpty {
-            currentStatus = .error(message: "未配置 Cloudflare Tunnel Token")
+            currentStatus = .error(message: "Cloudflare Tunnel token is not configured")
             return
         }
         
@@ -124,7 +124,7 @@ public final class CloudflareService {
             
             DispatchQueue.main.async {
                 if self?.currentStatus == .connecting {
-                    self?.currentStatus = .error(message: "进程异常退出 (Code \(proc.terminationStatus))")
+                    self?.currentStatus = .error(message: "进程异常Quit (Code \(proc.terminationStatus))")
                 }
             }
             
@@ -206,7 +206,7 @@ public final class CloudflareService {
         }
         
         guard let path = findBinaryPath() else {
-            completion(false, "未找到 cloudflared 可执行文件")
+            completion(false, "未找到 cloudflared 可执行Files")
             return
         }
         

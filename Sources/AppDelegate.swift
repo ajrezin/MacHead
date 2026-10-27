@@ -122,8 +122,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             suspensionBehavior: .deliverImmediately
         )
         
-        // CLI 软链接为 opt-in 组件：仅在偏好设置中开启后维护，默认零包外写入；
-        // 异步执行，提权弹窗不得阻塞启动流程
+        // The CLI symlink is an opt-in component: it is only maintained after enabling it in Preferences, with no out-of-app writes by default;
+        // it runs asynchronously so the elevated permission prompt cannot block startup
         DispatchQueue.main.async { CLIToolInstaller.setupIfEnabled() }
         
         // Auto-enable headless mode on launch if enabled in preferences
@@ -201,7 +201,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let menu = NSMenu()
         
         let toggleItem = NSMenuItem(
-            title: controller.isHeadlessModeEnabled ? "恢复内置屏显示" : "开启 Headless 模式",
+            title: controller.isHeadlessModeEnabled ? "Restore built-in display" : "Enable Headless mode",
             action: #selector(toggleHeadlessModeMenuAction),
             keyEquivalent: "h"
         )
@@ -211,7 +211,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(NSMenuItem.separator())
         
         let preferencesItem = NSMenuItem(
-            title: "偏好设置...",
+            title: "Preferences...",
             action: #selector(openPreferences),
             keyEquivalent: ","
         )
@@ -219,7 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(preferencesItem)
 
         let updateItem = NSMenuItem(
-            title: "检查更新...",
+            title: "Check for updates...",
             action: #selector(checkForUpdatesMenuAction),
             keyEquivalent: ""
         )
@@ -229,7 +229,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(
-            title: "退出 MacHead",
+            title: "Quit MacHead",
             action: #selector(quitApp),
             keyEquivalent: "q"
         )
@@ -256,14 +256,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard let mainMenu = NSApp.mainMenu,
               let appMenu = mainMenu.items.first?.submenu else { return }
 
-        // Ensure "偏好设置..." and "检查更新..." exist in the top-left MacHead application menu
+        // Ensure the top-left MacHead application menu includes "Preferences..." and "Check for Updates..."
         let hasCheckUpdate = appMenu.items.contains {
-            $0.action == #selector(checkForUpdatesMenuAction) || $0.title.contains("检查更新") || $0.title.contains("Check for Updates")
+            $0.action == #selector(checkForUpdatesMenuAction) || $0.title.contains("Check for Updates") || $0.title.contains("Check for Updates")
         }
         if !hasCheckUpdate {
             let insertIndex = min(2, appMenu.items.count)
             let updateItem = NSMenuItem(
-                title: "检查更新...",
+                title: "Check for updates...",
                 action: #selector(checkForUpdatesMenuAction),
                 keyEquivalent: ""
             )
@@ -282,7 +282,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 backing: .buffered,
                 defer: false
             )
-            window.title = "MacHead 偏好设置"
+            window.title = "MacHead Preferences"
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.backgroundColor = .clear
@@ -294,7 +294,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             self.preferencesWindow = window
         }
 
-        // Switch to .regular while Preferences window is open so macOS menu bar shows "MacHead -> 检查更新..."
+        // Switch to .regular while the Preferences window is open so macOS shows "MacHead -> Check for Updates..." in the menu bar
         NSApp.setActivationPolicy(.regular)
         ensureAppMenuItems()
         NSApp.activate(ignoringOtherApps: true)
@@ -316,14 +316,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     
     
     @objc private func handleCLIEngage() {
-        NSLog("MacHead: 收到来自 CLI 的启用命令，正在启用 Headless 模式...")
+        NSLog("MacHead: Received enable command from CLI; enabling Headless mode...")
         if !controller.isHeadlessModeEnabled {
             controller.enableHeadlessMode()
         }
     }
     
     @objc private func handleCLIDisengage() {
-        NSLog("MacHead: 收到来自 CLI 的禁用命令，正在关闭 Headless 模式...")
+        NSLog("MacHead: Received disable command from CLI; disabling Headless mode...")
         if controller.isHeadlessModeEnabled {
             controller.disableHeadlessMode()
         }

@@ -44,13 +44,13 @@ public enum FrpStatus: Equatable {
     public var displayText: String {
         switch self {
         case .stopped:
-            return "未启用 FRP 内网穿透"
+            return "FRP network tunneling is not enabled"
         case .connecting:
-            return "正在建立 FRP 穿透隧道..."
+            return "Establishing the FRP tunnel..."
         case .connected:
-            return "已成功建立 FRP 穿透隧道"
+            return "FRP tunnel established successfully"
         case .error(let msg):
-            return "穿透失败: \(msg)"
+            return "Tunnel failed: \(msg)"
         }
     }
 }
@@ -168,7 +168,7 @@ public final class FrpService {
         
         guard let path = binaryPath else {
             print("FrpService: Binary frpc not found")
-            currentStatus = .error(message: "未找到 frpc 可执行文件 (可在配置中手动指定路径或执行 brew install frp)")
+            currentStatus = .error(message: "未找到 frpc 可执行Files (可在配置中手动指定路径或执行 brew install frp)")
             return
         }
         
@@ -244,7 +244,7 @@ public final class FrpService {
             try configContent.write(toFile: configPath, atomically: true, encoding: .utf8)
         } catch {
             print("FrpService: Failed to write config file - \(error.localizedDescription)")
-            currentStatus = .error(message: "配置文件写入失败: \(error.localizedDescription)")
+            currentStatus = .error(message: "配置Files写入失败: \(error.localizedDescription)")
             return
         }
         
@@ -270,7 +270,7 @@ public final class FrpService {
             
             DispatchQueue.main.async {
                 if self?.currentStatus == .connecting {
-                    self?.currentStatus = .error(message: "进程异常退出 (Code \(proc.terminationStatus))")
+                    self?.currentStatus = .error(message: "进程异常Quit (Code \(proc.terminationStatus))")
                 }
             }
             

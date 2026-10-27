@@ -1,49 +1,49 @@
-# 贡献指南 / Contributing
+# Contributing
 
-感谢你愿意为 MacHead 出力!这个项目刻意保持小而美:纯 Swift、零第三方依赖、单 target。
+Thank you for contributing to MacHead! This project intentionally stays small and focused: pure Swift, zero third-party dependencies, single target.
 
-## 开发环境
+## Development Environment
 
-只需要 macOS 自带的 **Xcode Command Line Tools**(无需完整 Xcode):
+Only macOS’s built-in **Xcode Command Line Tools** are needed (no full Xcode required):
 
 ```bash
-xcode-select --install        # 如未安装
+xcode-select --install        # if not installed
 git clone https://github.com/ox01024/MacHead.git
 cd MacHead
-./build.sh --no-install       # 编译通用二进制,产物在当前目录 ./MacHead.app
-./build.sh                    # 编译并安装到 /Applications(会覆盖已有版本并重启 App)
+./build.sh --no-install       # build a universal binary; output stays in ./MacHead.app in the current directory
+./build.sh                    # build and install to /Applications (overwrites the existing version and restarts the app)
 ```
 
-- 无 SwiftPM / CocoaPods 依赖,`Sources/*.swift` 直接由 `swiftc` 编译。
-- 无需 Apple Developer 证书:构建使用 ad-hoc 签名。
-- `Resources/` 下的第三方二进制(nezha-agent、frpc、cloudflared、serverstatus-client)**不在仓库内**,缺失时构建依然成功,仅相关可选功能不可用;正式发布由 GitHub Actions(`release.yml`)自动拉取合并。
+- No SwiftPM / CocoaPods dependencies; `Sources/*.swift` are compiled directly with `swiftc`.
+- No Apple Developer certificate is required; builds use ad-hoc signing.
+- The third-party binaries in `Resources/` (nezha-agent, frpc, cloudflared, serverstatus-client) are **not** checked into the repo; the build still succeeds without them, and only the relevant optional features become unavailable. Official releases are assembled by GitHub Actions (`release.yml`).
 
-## 项目结构
+## Project Structure
 
 ```
-Sources/            # Swift 源代码(菜单栏 App、machead CLI、各功能模块)
-Resources/          # Info.plist、图标、Web 面板页面
-Scripts/            # 构建辅助脚本(图标生成等)
-website/            # 官网 headlessmac.com(Vite + Cloudflare Pages)
-docs/               # 深入文档(遥测 schema 等)
+Sources/            # Swift source code (menu bar app, machead CLI, service modules)
+Resources/          # Info.plist, icons, web panel assets
+Scripts/            # build helper scripts (icon generation, etc.)
+website/            # Website headlessmac.com (Vite + Cloudflare Pages)
+docs/               # in-depth docs (telemetry schema, etc.)
 ```
 
-## 提交规范
+## Commit Guidelines
 
-- Commit message 使用约定式前缀:`feat:` / `fix:` / `docs:` / `chore:` / `refactor:` …,中英文均可。
-- 一个 PR 只做一件事;功能分支命名 `feat/xxx`、`fix/xxx`。
-- 涉及 UI 的改动请附截图;涉及权限(辅助功能/输入监听/sudoers)的改动请说明测试路径。
+- Use conventional commit prefixes in commit messages: `feat:` / `fix:` / `docs:` / `chore:` / `refactor:` … Both Chinese and English are acceptable.
+- Keep each PR focused on a single topic; use branch names like `feat/xxx` and `fix/xxx`.
+- Include screenshots for UI changes. For changes involving permissions (Accessibility, Input Monitoring, sudoers), describe the test path.
 
-## Issue
+## Issues
 
-- Bug 反馈请附 macOS 版本与机型、MacHead 版本(菜单栏 → 关于)、复现步骤。
-- 功能建议请先描述**使用场景**,而不仅是实现方式。
-- 安全问题请勿提公开 issue,走 [私密漏洞报告](https://github.com/ox01024/MacHead/security/advisories/new)(见 [SECURITY.md](SECURITY.md))。
+- For bug reports, include the macOS version and model, the MacHead version (menu bar → About), and reproduction steps.
+- For feature suggestions, describe the **use case** first, not only the implementation.
+- For security issues, do not open a public issue; use [private vulnerability reporting](https://github.com/ox01024/MacHead/security/advisories/new) instead (see [SECURITY.md](SECURITY.md)).
 
-## 行为准则
+## Code of Conduct
 
-保持友善与对事不对人。维护者以业余时间处理反馈,响应慢请多包涵。
+Be kind and focus on the substance, not the person. Maintainers handle feedback in their spare time; please be patient if responses are slow.
 
 ---
 
-Issues and PRs in Chinese or English are both welcome.
+Issues and PRs in English are welcome.
